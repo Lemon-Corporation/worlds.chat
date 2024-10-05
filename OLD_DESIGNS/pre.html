@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Worlds Spectacular</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background-color: #0a0a1e;
+            font-family: 'Orbitron', sans-serif;
+            color: #00fff9;
+        }
+
+        #space {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .worlds-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10vw;
+            font-weight: 700;
+            color: #00fff9;
+            text-shadow: 0 0 10px #00fff9, 0 0 20px #00fff9, 0 0 30px #00fff9;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeIn 2s ease-out 1s forwards, glitch 5s infinite alternate-reverse 3s;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes glitch {
+            0% {
+                text-shadow: 0 0 10px #00fff9, 0 0 20px #00fff9, 0 0 30px #00fff9;
+                transform: translate(-50%, -50%) skew(0deg);
+            }
+            20% {
+                text-shadow: -2px 0 #ff00de, 2px 2px #00fff9;
+                transform: translate(-52%, -50%) skew(2deg);
+            }
+            40% {
+                text-shadow: 2px -2px #ff00de, -2px 2px #00fff9;
+                transform: translate(-48%, -52%) skew(-2deg);
+            }
+            60% {
+                text-shadow: -2px -2px #ff00de, 2px -2px #00fff9;
+                transform: translate(-51%, -49%) skew(1deg);
+            }
+            80% {
+                text-shadow: 0.5px 1px #ff00de, -1px -0.5px #00fff9;
+                transform: translate(-49%, -51%) skew(-1deg);
+            }
+            100% {
+                text-shadow: 2px 0 #ff00de, -2px -2px #00fff9;
+                transform: translate(-50%, -50%) skew(0deg);
+            }
+        }
+
+        .planet {
+            filter: url(#glow);
+        }
+
+        .orbit {
+            stroke: rgba(0, 255, 249, 0.2);
+            fill: none;
+            filter: url(#glow);
+        }
+
+        .particle {
+            fill: #ffffff;
+            opacity: 0.5;
+        }
+
+        .ui-element {
+            position: absolute;
+            border: 2px solid #00fff9;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: rgba(10, 10, 30, 0.7);
+            box-shadow: 0 0 10px #00fff9, 0 0 20px #00fff9;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 2s forwards;
+        }
+
+        .ui-element h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .ui-element p {
+            font-size: 0.9em;
+            color: #a0a0b0;
+        }
+
+        #top-left {
+            top: 20px;
+            left: 20px;
+        }
+
+        #bottom-right {
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <svg id="space" width="100%" height="100%">
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <radialGradient id="planetGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:0.5"/>
+            </radialGradient>
+        </defs>
+    </svg>
+    <div class="worlds-text">WORLDS!</div>
+    <div id="top-left" class="ui-element">
+        <h2>Cyber Nexus</h2>
+        <p>Connected: 1337 users</p>
+    </div>
+    <div id="bottom-right" class="ui-element">
+        <h2>System Status</h2>
+        <p>All systems operational</p>
+    </div>
+
+    <script>
+        const svg = document.getElementById('space');
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        function createPlanet(cx, cy, r, color) {
+            const planet = document.createElementNS(svgNS, "circle");
+            planet.setAttributeNS(null, "cx", cx);
+            planet.setAttributeNS(null, "cy", cy);
+            planet.setAttributeNS(null, "r", r);
+            planet.setAttributeNS(null, "fill", color);
+            planet.classList.add("planet");
+            
+            const atmosphere = document.createElementNS(svgNS, "circle");
+            atmosphere.setAttributeNS(null, "cx", cx);
+            atmosphere.setAttributeNS(null, "cy", cy);
+            atmosphere.setAttributeNS(null, "r", r * 1.05);
+            atmosphere.setAttributeNS(null, "fill", "url(#planetGradient)");
+            atmosphere.classList.add("planet");
+
+            const group = document.createElementNS(svgNS, "g");
+            group.appendChild(planet);
+            group.appendChild(atmosphere);
+            return group;
+        }
+
+        function createRing(cx, cy, r, color) {
+            const ring = document.createElementNS(svgNS, "ellipse");
+            ring.setAttributeNS(null, "cx", cx);
+            ring.setAttributeNS(null, "cy", cy);
+            ring.setAttributeNS(null, "rx", r * 1.5);
+            ring.setAttributeNS(null, "ry", r * 0.3);
+            ring.setAttributeNS(null, "fill", "none");
+            ring.setAttributeNS(null, "stroke", color);
+            ring.setAttributeNS(null, "stroke-width", "2");
+            ring.classList.add("planet");
+            return ring;
+        }
+
+        function createStar(x, y, r) {
+            const star = document.createElementNS(svgNS, "circle");
+            star.setAttributeNS(null, "cx", x);
+            star.setAttributeNS(null, "cy", y);
+            star.setAttributeNS(null, "r", r);
+            star.setAttributeNS(null, "fill", "#ffffff");
+            return star;
+        }
+
+        function createOrbit(cx, cy, r) {
+            const orbit = document.createElementNS(svgNS, "circle");
+            orbit.setAttributeNS(null, "cx", cx);
+            orbit.setAttributeNS(null, "cy", cy);
+            orbit.setAttributeNS(null, "r", r);
+            orbit.classList.add("orbit");
+            return orbit;
+        }
+
+        function createParticle(x, y) {
+            const particle = document.createElementNS(svgNS, "circle");
+            particle.setAttributeNS(null, "cx", x);
+            particle.setAttributeNS(null, "cy", y);
+            particle.setAttributeNS(null, "r", Math.random() * 2);
+            particle.classList.add("particle");
+            return particle;
+        }
+
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        const planets = [
+            { cx: centerX, cy: centerY, r: 60, color: "#ff00de", speed: 0, orbitRadius: 0, orbitSpeed: 0 },
+            { cx: centerX, cy: centerY, r: 20, color: "#00fff9", speed: 0.02, orbitRadius: 150, orbitSpeed: 0.005 },
+            { cx: centerX, cy: centerY, r: 30, color: "#ff6b6b", speed: 0.015, orbitRadius: 250, orbitSpeed: 0.003 },
+            { cx: centerX, cy: centerY, r: 25, color: "#4ecdc4", speed: 0.025, orbitRadius: 350, orbitSpeed: 0.002 },
+            { cx: centerX, cy: centerY, r: 35, color: "#f9d56e", speed: 0.01, orbitRadius: 450, orbitSpeed: 0.001 }
+        ];
+
+        // Create stars
+        for (let i = 0; i < 200; i++) {
+            const star = createStar(
+                Math.random() * window.innerWidth,
+                Math.random() * window.innerHeight,
+                Math.random() * 1.5
+            );
+            svg.appendChild(star);
+        }
+
+        // Create orbits and planets
+        planets.forEach(p => {
+            if (p.orbitRadius > 0) {
+                const orbit = createOrbit(p.cx, p.cy, p.orbitRadius);
+                svg.appendChild(orbit);
+            }
+            const planet = createPlanet(p.cx, p.cy, p.r, p.color);
+            svg.appendChild(planet);
+            if (Math.random() > 0.5 && p.r > 25) {
+                const ring = createRing(p.cx, p.cy, p.r, p.color);
+                svg.appendChild(ring);
+            }
+        });
+
+        // Create particle effect
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            const particle = createParticle(
+                Math.random() * window.innerWidth,
+                Math.random() * window.innerHeight
+            );
+            particles.push({
+                element: particle,
+                x: parseFloat(particle.getAttributeNS(null, "cx")),
+                y: parseFloat(particle.getAttributeNS(null, "cy")),
+                vx: Math.random() * 2 - 1,
+                vy: Math.random() * 2 - 1
+            });
+            svg.appendChild(particle);
+        }
+
+        function animate() {
+            planets.forEach((p, index) => {
+                const planetGroup = svg.children[index + 201]; // +201 to skip stars and orbits
+                
+                p.angle = (p.angle || 0) + p.speed;
+                p.orbitAngle = (p.orbitAngle || 0) + p.orbitSpeed;
+                
+                const x = p.cx + Math.cos(p.orbitAngle) * p.orbitRadius;
+                const y = p.cy + Math.sin(p.orbitAngle) * p.orbitRadius;
+                
+                planetGroup.setAttributeNS(null, "transform", `translate(${x - p.cx}, ${y - p.cy}) rotate(${p.angle * (180 / Math.PI)}, ${p.cx}, ${p.cy})`);
+            });
+
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > window.innerWidth) p.vx *= -1;
+                if (p.y < 0 || p.y > window.innerHeight) p.vy *= -1;
+
+                p.element.setAttributeNS(null, "cx", p.x);
+                p.element.setAttributeNS(null, "cy", p.y);
+            });
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            svg.setAttribute("width", window.innerWidth);
+            svg.setAttribute("height", window.innerHeight);
+            // Recalculate planet positions here if needed
+        });
+    </script>
+</body>
+</html>

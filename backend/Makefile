@@ -1,8 +1,8 @@
 .PHONY: clean critic security lint test build run
 
 APP_NAME = apiserver
-BUILD_DIR = $(PWD)/build
-MIGRATIONS_FOLDER = $(PWD)/platform/migrations
+BUILD_DIR = ./build
+MIGRATIONS_FOLDER = ./platform/migrations
 DATABASE_URL = postgres://postgres:password@cgapp-postgres/postgres?sslmode=disable
 
 clean:
