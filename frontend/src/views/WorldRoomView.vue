@@ -1,88 +1,162 @@
 <template>
-  <div class="world-room">
-    <div class="cyber-lines"></div>
-    <div class="sidebar">
-      <h1 class="world-name glitch" data-text="CYBER NEXUS">WORLD</h1>
-      <div class="channels">
-        <h2 class="channel-category">Text Channels</h2>
-        <div
-          v-for="channel in textChannels"
-          :key="channel.id"
-          :class="['channel-item', { active: channel.id === activeChannel }]"
-          @click="setActiveChannel(channel.id)"
-        >
-          <img
-            src="https://api.iconify.design/lucide:hash.svg"
-            alt="Text Channel"
-          />
-          {{ channel.name }}
-        </div>
-        <h2 class="channel-category">Voice Channels</h2>
-        <div
-          v-for="channel in voiceChannels"
-          :key="channel.id"
-          :class="['channel-item', { active: channel.id === activeChannel }]"
-          @click="setActiveChannel(channel.id)"
-        >
-          <img
-            src="https://api.iconify.design/lucide:mic.svg"
-            alt="Voice Channel"
-          />
-          {{ channel.name }}
-        </div>
+  <div class="app-container">
+    <div class="left-sidebar">
+      <h1 class="logo glitch" data-text="NEXUS">NEXUS</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="#" class="nav-item" @click="setActiveView('worlds')"
+              ><img
+                src="https://api.iconify.design/lucide:globe.svg"
+                alt="Worlds"
+              />
+              WORLDS</a
+            >
+          </li>
+          <li>
+            <a href="#" class="nav-item" @click="setActiveView('friends')"
+              ><img
+                src="https://api.iconify.design/lucide:users.svg"
+                alt="Friends"
+              />
+              FRIENDS</a
+            >
+          </li>
+          <li>
+            <a href="#" class="nav-item" @click="setActiveView('settings')"
+              ><img
+                src="https://api.iconify.design/lucide:settings.svg"
+                alt="Settings"
+              />
+              SETTINGS</a
+            >
+          </li>
+        </ul>
+      </nav>
+      <div class="create-world-button" @click="createWorld">
+        <img
+          src="https://api.iconify.design/lucide:plus-circle.svg"
+          alt="Create World"
+        />
+        CREATE WORLD
       </div>
     </div>
     <div class="main-content">
-      <div class="chat-header">
-        <h2># {{ activeChannelName }}</h2>
-        <div class="header-icons">
-          <img
-            v-for="icon in headerIcons"
-            :key="icon.alt"
-            :src="icon.src"
-            :alt="icon.alt"
-          />
+      <div class="world-header">
+        <h2 class="world-name">WORLD</h2>
+        <div class="channel-list">
+          <h3>TEXT CHANNELS</h3>
+          <ul>
+            <li
+              v-for="channel in textChannels"
+              :key="channel.id"
+              :class="{ active: channel.id === activeChannel }"
+              @click="setActiveChannel(channel.id)"
+            >
+              # {{ channel.name }}
+            </li>
+          </ul>
+          <h3>VOICE CHANNELS</h3>
+          <ul>
+            <li
+              v-for="channel in voiceChannels"
+              :key="channel.id"
+              :class="{ active: channel.id === activeChannel }"
+              @click="setActiveChannel(channel.id)"
+            >
+              <img
+                src="https://api.iconify.design/lucide:mic.svg"
+                alt="Voice Channel"
+              />
+              {{ channel.name }}
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="chat-messages" ref="chatMessages">
-        <div v-for="message in messages" :key="message.id" class="message">
-          <img :src="message.avatar" :alt="message.author" class="avatar" />
-          <div class="message-content">
-            <div class="message-header">
-              <span class="author">{{ message.author }}</span>
-              <span class="timestamp">{{ message.timestamp }}</span>
-            </div>
-            <div class="message-text">{{ message.text }}</div>
+      <div class="chat-area">
+        <div class="chat-header">
+          <h2># {{ activeChannelName }}</h2>
+          <div class="header-icons">
+            <img
+              src="https://api.iconify.design/lucide:bell.svg"
+              alt="Notifications"
+              @click="toggleNotifications"
+            />
+            <img
+              src="https://api.iconify.design/lucide:users.svg"
+              alt="Members"
+              @click="toggleMembersList"
+            />
+            <img
+              src="https://api.iconify.design/lucide:search.svg"
+              alt="Search"
+              @click="toggleSearch"
+            />
+            <img
+              src="https://api.iconify.design/lucide:message-square.svg"
+              alt="Messages"
+              @click="setActiveView('messages')"
+            />
           </div>
         </div>
-      </div>
-      <div class="message-input">
-        <input
-          v-model="newMessage"
-          @keyup.enter="sendMessage"
-          type="text"
-          :placeholder="`Message #${activeChannelName}`"
-        />
-        <button @click="sendMessage" class="send-btn">Send</button>
+        <div class="messages" ref="chatMessages">
+          <div v-for="message in messages" :key="message.id" class="message">
+            <img :src="message.avatar" :alt="message.author" class="avatar" />
+            <div class="message-content">
+              <div class="message-header">
+                <span class="author">{{ message.author }}</span>
+                <span class="timestamp">{{ message.timestamp }}</span>
+              </div>
+              <div class="message-text">{{ message.text }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="message-input">
+          <input
+            v-model="newMessage"
+            @keyup.enter="sendMessage"
+            :placeholder="`Message #${activeChannelName}`"
+          />
+          <button @click="sendMessage">Send</button>
+        </div>
       </div>
     </div>
-    <div class="member-list">
-      <h2 class="member-category">Online - {{ onlineMembers.length }}</h2>
-      <div v-for="member in onlineMembers" :key="member.id" class="member-item">
-        <img :src="member.avatar" :alt="member.name" class="avatar" />
-        <span class="member-name">{{ member.name }}</span>
-        <span class="status-indicator online"></span>
+    <div class="right-sidebar" :class="{ 'show-members': showMembers }">
+      <div class="online-users">
+        <h3>ONLINE - {{ onlineMembers.length }}</h3>
+        <ul>
+          <li v-for="member in onlineMembers" :key="member.id">
+            <img :src="member.avatar" :alt="member.name" class="avatar" />
+            <span class="member-name">{{ member.name }}</span>
+            <span class="status-indicator online"></span>
+          </li>
+        </ul>
       </div>
-      <h2 class="member-category">Offline - {{ offlineMembers.length }}</h2>
-      <div
-        v-for="member in offlineMembers"
-        :key="member.id"
-        class="member-item"
-      >
-        <img :src="member.avatar" :alt="member.name" class="avatar" />
-        <span class="member-name">{{ member.name }}</span>
-        <span class="status-indicator offline"></span>
+      <div class="offline-users">
+        <h3>OFFLINE - {{ offlineMembers.length }}</h3>
+        <ul>
+          <li v-for="member in offlineMembers" :key="member.id">
+            <img :src="member.avatar" :alt="member.name" class="avatar" />
+            <span class="member-name">{{ member.name }}</span>
+            <span class="status-indicator offline"></span>
+          </li>
+        </ul>
       </div>
+    </div>
+    <div class="user-audio-controls">
+      <img
+        src="https://api.iconify.design/lucide:mic.svg"
+        alt="Microphone"
+        @click="toggleMic"
+        :class="{ active: micActive }"
+      />
+      <img
+        src="https://api.iconify.design/lucide:headphones.svg"
+        alt="Headphones"
+        @click="toggleHeadphones"
+        :class="{ active: headphonesActive }"
+      />
+      <span class="user-name">Your Username</span>
     </div>
   </div>
 </template>
@@ -90,9 +164,13 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
 
+const activeView = ref("worlds");
 const activeChannel = ref("general");
 const newMessage = ref("");
 const chatMessages = ref(null);
+const showMembers = ref(false);
+const micActive = ref(false);
+const headphonesActive = ref(false);
 
 const textChannels = ref([
   { id: "general", name: "General" },
@@ -103,12 +181,6 @@ const textChannels = ref([
 const voiceChannels = ref([
   { id: "lounge", name: "Lounge" },
   { id: "gaming", name: "Gaming" },
-]);
-
-const headerIcons = ref([
-  { src: "https://api.iconify.design/lucide:bell.svg", alt: "Notifications" },
-  { src: "https://api.iconify.design/lucide:users.svg", alt: "Members" },
-  { src: "https://api.iconify.design/lucide:search.svg", alt: "Search" },
 ]);
 
 const messages = ref([
@@ -169,6 +241,10 @@ const activeChannelName = computed(() => {
   return channel ? channel.name : "";
 });
 
+const setActiveView = (view) => {
+  activeView.value = view;
+};
+
 const setActiveChannel = (channelId) => {
   activeChannel.value = channelId;
 };
@@ -195,6 +271,33 @@ const scrollToBottom = () => {
   });
 };
 
+const toggleNotifications = () => {
+  // Implement notification toggle logic
+  console.log("Notifications toggled");
+};
+
+const toggleMembersList = () => {
+  showMembers.value = !showMembers.value;
+};
+
+const toggleSearch = () => {
+  // Implement search toggle logic
+  console.log("Search toggled");
+};
+
+const createWorld = () => {
+  // Implement world creation logic
+  console.log("Creating a new world");
+};
+
+const toggleMic = () => {
+  micActive.value = !micActive.value;
+};
+
+const toggleHeadphones = () => {
+  headphonesActive.value = !headphonesActive.value;
+};
+
 onMounted(() => {
   scrollToBottom();
 });
@@ -203,83 +306,315 @@ onMounted(() => {
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap");
 
-.world-room {
-  font-family: "Orbitron", sans-serif;
-  display: flex;
+.app-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 240px;
+  grid-template-rows: 1fr auto;
   height: 100vh;
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  position: relative;
-  overflow: hidden;
+  font-family: "Orbitron", sans-serif;
+  background-color: #1a1b26;
+  color: #a9b1d6;
 }
 
-.cyber-lines {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
+.left-sidebar,
+.right-sidebar,
+.world-header {
+  background-color: #16161e;
+  padding: 1rem;
 }
 
-.cyber-lines::before,
-.cyber-lines::after {
-  content: "";
-  position: absolute;
-  width: 200vw;
-  height: 200vh;
-  top: -50%;
-  left: -50%;
-  background-image: linear-gradient(
-      0deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    ),
-    linear-gradient(
-      90deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    );
-  background-size: 50px 50px;
+.left-sidebar {
+  grid-row: 1 / 3;
+  border-right: 1px solid #2f3240;
+  display: flex;
+  flex-direction: column;
 }
 
-.cyber-lines::after {
-  background-position: 25px 25px;
+.logo {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #7aa2f7;
 }
 
-.sidebar {
-  width: 240px;
-  background-color: var(--bg-sidebar);
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1;
+.nav-item {
+  display: flex;
+  align-items: center;
+  color: #a9b1d6;
+  text-decoration: none;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav-item:hover {
+  background-color: #2f3240;
+}
+
+.nav-item img {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
+  filter: invert(0.7);
+}
+
+.create-world-button {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7aa2f7;
+  color: #1a1b26;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.create-world-button:hover {
+  background-color: #5d86e6;
+}
+
+.create-world-button img {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
+  filter: invert(1);
+}
+
+.main-content {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.world-header {
+  border-bottom: 1px solid #2f3240;
 }
 
 .world-name {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #7aa2f7;
+}
+
+.channel-list h3 {
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #565f89;
+}
+
+.channel-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.channel-list li {
+  padding: 0.25rem 0;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.channel-list li:hover,
+.channel-list li.active {
+  color: #7aa2f7;
+}
+
+.channel-list li img {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  filter: invert(0.7);
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #1a1b26;
+  border-bottom: 1px solid #2f3240;
+}
+
+.chat-header h2 {
+  font-size: 1.2rem;
+  color: #7aa2f7;
+}
+
+.header-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-icons img {
+  width: 20px;
+  height: 20px;
+  filter: invert(0.7);
+  cursor: pointer;
+  transition: filter 0.3s;
+}
+
+.header-icons img:hover {
+  filter: invert(0.9);
+}
+
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.message-content {
+  flex-grow: 1;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.author {
+  font-weight: bold;
+  color: #7aa2f7;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: #565f89;
+}
+
+.message-input {
+  display: flex;
+  padding: 1rem;
+  background-color: #1a1b26;
+  border-top: 1px solid #2f3240;
+}
+
+.message-input input {
+  flex-grow: 1;
+  background-color: #24283b;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  color: #a9b1d6;
+  font-family: "Orbitron", sans-serif;
+}
+
+.message-input button {
+  background-color: #7aa2f7;
+  color: #1a1b26;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.message-input button:hover {
+  background-color: #5d86e6;
+}
+
+.right-sidebar {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  border-left: 1px solid #2f3240;
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+.right-sidebar.show-members {
+  transform: translateX(0);
+}
+
+.right-sidebar h3 {
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #565f89;
+}
+
+.right-sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.right-sidebar li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.member-name {
+  margin-left: 0.5rem;
+  flex-grow: 1;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-indicator.online {
+  background-color: #9ece6a;
+}
+
+.status-indicator.offline {
+  background-color: #565f89;
+}
+
+.user-audio-controls {
+  grid-column: 1 / 4;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #16161e;
+  border-top: 1px solid #2f3240;
+}
+
+.user-audio-controls img {
+  width: 20px;
+  height: 20px;
+  margin-right: 1rem;
+  filter: invert(0.7);
+  cursor: pointer;
+  transition: filter 0.3s;
+}
+
+.user-audio-controls img:hover,
+.user-audio-controls img.active {
+  filter: invert(0.9);
+}
+
+.user-name {
+  margin-left: auto;
+  color: #7aa2f7;
 }
 
 .glitch {
   position: relative;
-  color: var(--text-primary);
-  text-shadow: 0 0 10px var(--accent-purple);
+  color: #7aa2f7;
+  text-shadow: 0 0 10px #7aa2f7;
 }
 
 .glitch::before,
@@ -294,13 +629,13 @@ onMounted(() => {
 
 .glitch::before {
   left: 2px;
-  text-shadow: -2px 0 var(--accent-cyan);
+  text-shadow: -2px 0 #ff79c6;
   animation: glitch-animation 3s infinite linear alternate-reverse;
 }
 
 .glitch::after {
   left: -2px;
-  text-shadow: 2px 0 var(--accent-purple);
+  text-shadow: 2px 0 #bd93f9;
   animation: glitch-animation 2s infinite linear alternate-reverse;
 }
 
@@ -325,194 +660,22 @@ onMounted(() => {
   }
 }
 
-.channel-category {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-top: 20px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-.channel-item {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  margin-bottom: 5px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: var(--transition);
-}
-
-.channel-item:hover,
-.channel-item.active {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-}
-
-.channel-item img {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  filter: invert(0.7);
-}
-
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  z-index: 1;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background-color: var(--bg-sidebar);
-  border-bottom: 1px solid var(--accent-purple);
-}
-
-.header-icons {
-  display: flex;
-  gap: 15px;
-}
-
-.header-icons img {
-  width: 20px;
-  height: 20px;
-  filter: invert(1);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.header-icons img:hover {
-  transform: scale(1.1);
-}
-
-.chat-messages {
-  flex-grow: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.message {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-.message-content {
-  flex-grow: 1;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
-
-.author {
-  font-weight: bold;
-  color: var(--accent-cyan);
-}
-
-.timestamp {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.message-input {
-  display: flex;
-  padding: 15px;
-  background-color: var(--bg-sidebar);
-}
-
-.message-input input {
-  flex-grow: 1;
-  background-color: var(--bg-card);
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  color: var(--text-primary);
-  font-family: "Orbitron", sans-serif;
-}
-
-.send-btn {
-  background-color: var(--accent-purple);
-  color: var(--text-primary);
-  border: none;
-  padding: 10px 20px;
-  margin-left: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.send-btn:hover {
-  background-color: var(--accent-hover);
-}
-
-.member-list {
-  width: 240px;
-  background-color: var(--bg-sidebar);
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1;
-}
-
-.member-category {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-top: 20px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-.member-item {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  margin-bottom: 5px;
-}
-
-.member-name {
-  margin-left: 10px;
-  flex-grow: 1;
-}
-
-.status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.status-indicator.online {
-  background-color: #2ecc71;
-}
-
-.status-indicator.offline {
-  background-color: #95a5a6;
-}
-
 @media (max-width: 768px) {
-  .world-room {
-    flex-direction: column;
+  .app-container {
+    grid-template-columns: 1fr;
   }
 
-  .sidebar,
-  .member-list {
-    width: 100%;
-    max-height: 200px;
+  .left-sidebar,
+  .right-sidebar {
+    display: none;
   }
 
   .main-content {
-    flex-grow: 1;
+    grid-column: 1;
+  }
+
+  .user-audio-controls {
+    grid-column: 1;
   }
 }
 </style>
