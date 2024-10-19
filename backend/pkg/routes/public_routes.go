@@ -3,18 +3,20 @@ package routes
 import (
 	"github.com/Lemon-Corporation/worlds.chat/backend/app/controllers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
 )
 
-// PublicRoutes func for describe group of public routes.
-func PublicRoutes(a *fiber.App) {
-	// Create routes group.
+func PublicRoutes(a *fiber.App, db *sqlx.DB) {
 	route := a.Group("/api/v1")
 
-	// Routes for GET method:
-	route.Get("/books", controllers.GetBooks)   // get list of all books
-	route.Get("/book/:id", controllers.GetBook) // get one book by ID
+	userController := controllers.NewUserController(db)
 
-	// Routes for POST method:
-	route.Post("/user/sign/up", controllers.UserSignUp) // register a new user
-	route.Post("/user/sign/in", controllers.UserSignIn) // auth, return Access & Refresh tokens
+	route.Post("/user/sign/up", userController.UserSignUp)
+	route.Post("/user/sign/in", userController.UserSignIn)
+	route.Post("/user/sign/out", userController.UserSignOut)
+	route.Post("/user/renew/tokens", userController.RenewTokens)
+
+	// Оставляем существующие маршруты для книг
+	route.Get("/books", controllers.GetBooks)
+	route.Get("/book/:id", controllers.GetBook)
 }
