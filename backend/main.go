@@ -3,14 +3,14 @@ package main
 import (
 	"os"
 
-	"github.com/create-go-app/fiber-go-template/pkg/configs"
-	"github.com/create-go-app/fiber-go-template/pkg/middleware"
-	"github.com/create-go-app/fiber-go-template/pkg/routes"
-	"github.com/create-go-app/fiber-go-template/pkg/utils"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/configs"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/middleware"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/routes"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
 
-	_ "github.com/create-go-app/fiber-go-template/docs" // load API Docs files (Swagger)
+	_ "github.com/Lemon-Corporation/worlds.chat/backend/docs" // load API Docs files (Swagger)
 
 	_ "github.com/joho/godotenv/autoload" // load .env file automatically
 )

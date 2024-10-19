@@ -1,4 +1,4 @@
-module github.com/create-go-app/fiber-go-template
+module github.com/Lemon-Corporation/worlds.chat/backend
 
 go 1.19
 

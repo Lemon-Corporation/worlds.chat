@@ -42,11 +42,15 @@ func ConnectionURLBuilder(n string) (string, error) {
 		)
 	case "fiber":
 		// URL for Fiber connection.
-		url = fmt.Sprintf(
-			"%s:%s",
-			os.Getenv("SERVER_HOST"),
-			os.Getenv("SERVER_PORT"),
-		)
+		host := os.Getenv("SERVER_HOST")
+		if host == "" {
+			host = "0.0.0.0" // значение по умолчанию
+		}
+		port := os.Getenv("SERVER_PORT")
+		if port == "" {
+			port = "43613" // значение по умолчанию
+		}
+		url = fmt.Sprintf("%s:%s", host, port)
 	default:
 		// Return error message.
 		return "", fmt.Errorf("connection name '%v' is not supported", n)

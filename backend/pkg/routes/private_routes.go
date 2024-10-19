@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/create-go-app/fiber-go-template/app/controllers"
-	"github.com/create-go-app/fiber-go-template/pkg/middleware"
+	"github.com/Lemon-Corporation/worlds.chat/backend/app/controllers"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 

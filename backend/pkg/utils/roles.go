@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/create-go-app/fiber-go-template/pkg/repository"
+	"github.com/Lemon-Corporation/worlds.chat/backend/pkg/repository"
 )
 
 // VerifyRole func for verifying a given role.
