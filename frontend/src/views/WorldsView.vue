@@ -1,501 +1,226 @@
 <template>
-  <div class="app-container">
-    <div class="cyber-lines"></div>
-    <div class="sidebar">
-      <div
-        v-for="item in sidebarItems"
-        :key="item.text"
-        :class="['sidebar-item', { active: item.active }]"
+  <div
+    class="min-h-screen bg-gradient-to-b from-lime-50 via-green-50 to-emerald-50"
+  >
+    <NavBar />
+
+    <main class="container mx-auto px-4 py-2">
+      <h1>s</h1>
+      <h1>ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss</h1>
+      <h1>ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss</h1>
+      <h1
+        class="text-3xl md:text-4xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600"
       >
-        <img :src="item.icon" :alt="item.text" />
-        {{ item.text }}
-      </div>
-      <button class="create-world-btn">Create World</button>
-    </div>
-    <div class="main-content">
-      <div class="header">
-        <h1 class="glitch" data-text="WORLDS">WORLDS</h1>
-        <div class="header-icons">
-          <img
-            v-for="icon in headerIcons"
-            :key="icon.alt"
-            :src="icon.src"
-            :alt="icon.alt"
-          />
-        </div>
-      </div>
-      <div class="search-bar">
-        <img src="https://api.iconify.design/lucide:search.svg" alt="Search" />
-        <input type="text" placeholder="Search Worlds" />
-      </div>
-      <h2 class="section-title">Featured</h2>
-      <div class="worlds-grid">
+        Миры WORLDS
+      </h1>
+
+      <!-- Introduction Section -->
+      <section class="mb-16">
         <div
-          v-for="world in featuredWorlds"
-          :key="world.title"
-          class="world-card"
+          class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
         >
-          <img :src="world.image" :alt="world.title" />
-          <div class="world-title">{{ world.title }}</div>
+          <div class="p-4 md:p-8">
+            <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-800">
+              Что такое Мир в WORLDS?
+            </h2>
+            <p class="text-gray-600 mb-4">
+              Мир в WORLDS - это уникальное виртуальное пространство, которое вы
+              можете создать и настроить под свои нужды. Это больше, чем просто
+              чат или форум - это полноценная цифровая экосистема для общения,
+              работы и творчества.
+            </p>
+            <p class="text-gray-600 mb-4">Каждый Мир может включать в себя:</p>
+            <ul class="list-disc list-inside text-gray-600 mb-4">
+              <li>Многоуровневую структуру каналов и комнат</li>
+              <li>3D-навигацию между различными зонами</li>
+              <li>Встроенные инструменты для совместной работы</li>
+              <li>Систему ролей и разрешений</li>
+              <li>Интеграцию с внешними сервисами и приложениями</li>
+            </ul>
+            <p class="text-gray-600">
+              Миры в WORLDS - это новый способ создавать онлайн-сообщества,
+              виртуальные офисы, образовательные платформы и многое другое.
+              Возможности ограничены только вашим воображением!
+            </p>
+          </div>
         </div>
-      </div>
-      <h2 class="section-title">Trending</h2>
-      <div class="worlds-grid">
+      </section>
+
+      <!-- Create Your Own World Section -->
+      <section class="mb-16">
         <div
-          v-for="world in trendingWorlds"
-          :key="world.title"
-          class="world-card"
+          class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
         >
-          <img :src="world.image" :alt="world.title" />
-          <div class="world-title">{{ world.title }}</div>
+          <div class="p-4 md:p-8">
+            <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-800">
+              Создайте свой собственный Мир
+            </h2>
+            <p class="text-gray-600 mb-4">
+              В WORLDS вы не ограничены предустановленными шаблонами. Вы можете
+              создать свой уникальный Мир, который отражает ваше видение и
+              отвечает вашим конкретным потребностям.
+            </p>
+            <p class="text-gray-600 mb-4">
+              Независимо от того, хотите ли вы создать:
+            </p>
+            <ul class="list-disc list-inside text-gray-600 mb-4">
+              <li>Инновационное образовательное пространство</li>
+              <li>Виртуальный офис для удаленной команды</li>
+              <li>Творческую студию для совместных проектов</li>
+              <li>Социальный хаб для вашего сообщества</li>
+              <li>Или что-то совершенно новое и уникальное</li>
+            </ul>
+            <p class="text-gray-600">
+              WORLDS предоставит вам инструменты и возможности для воплощения
+              вашей идеи в жизнь. Готовьтесь творить и создавать без границ!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Worlds Concept -->
+      <section>
+        <h2
+          class="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800"
+        >
+          Концепции будущих Миров
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+          <div
+            v-for="world in conceptWorlds"
+            :key="world.name"
+            class="bg-white rounded-xl shadow-lg overflow-hidden"
+          >
+            <div class="p-4 md:p-6">
+              <component
+                :is="world.icon"
+                class="w-10 h-10 md:w-12 md:h-12 text-lime-500 mb-4"
+              />
+              <h3 class="text-lg md:text-xl font-semibold mb-2 text-gray-800">
+                {{ world.name }}
+              </h3>
+              <p class="text-sm md:text-base text-gray-600">
+                {{ world.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <FooterBar />
+
+    <!-- Subscribe Modal -->
+    <teleport to="body">
+      <div
+        v-if="showSubscribeModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      >
+        <div class="bg-white rounded-lg p-6 md:p-8 max-w-md w-full">
+          <h2 class="text-xl md:text-2xl font-bold mb-4 text-gray-800">
+            Подписаться на обновления
+          </h2>
+          <form @submit.prevent="submitSubscription">
+            <div class="mb-4">
+              <label for="email" class="block text-gray-700 font-medium mb-2"
+                >Email</label
+              >
+              <input
+                v-model="subscriptionEmail"
+                type="email"
+                id="email"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500"
+                placeholder="your@email.com"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-lime-500 to-green-500 text-white font-bold py-2 px-4 rounded-md hover:from-lime-600 hover:to-green-600 transition-colors"
+            >
+              Подписаться
+            </button>
+          </form>
+          <button
+            @click="showSubscribeModal = false"
+            class="mt-4 text-sm text-gray-600 hover:text-lime-600 transition-colors"
+          >
+            Закрыть
+          </button>
         </div>
       </div>
-    </div>
+    </teleport>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
+import NavBar from "@/components/NavBar.vue";
+import FooterBar from "@/components/FooterBar.vue";
+import {
+  Rocket,
+  Globe,
+  Users,
+  Briefcase,
+  GraduationCap,
+  Gamepad,
+} from "lucide-vue-next";
 
-const sidebarItems = ref([
-  {
-    text: "Messages",
-    icon: "https://api.iconify.design/lucide:message-circle.svg",
-    active: false,
-  },
-  {
-    text: "Worlds",
-    icon: "https://api.iconify.design/lucide:users.svg",
-    active: true,
-  },
-  {
-    text: "Inner",
-    icon: "https://api.iconify.design/lucide:hash.svg",
-    active: false,
-  },
-  {
-    text: "Notifications",
-    icon: "https://api.iconify.design/lucide:bell.svg",
-    active: false,
-  },
-]);
+const showSubscribeModal = ref(false);
+const subscriptionEmail = ref("");
 
-const headerIcons = ref([
-  { src: "https://api.iconify.design/lucide:bell.svg", alt: "Notifications" },
-  { src: "https://api.iconify.design/lucide:hash.svg", alt: "Hash" },
-  { src: "https://api.iconify.design/lucide:user.svg", alt: "User Profile" },
-]);
+const submitSubscription = () => {
+  // Implement subscription logic here
+  console.log("Subscribed email:", subscriptionEmail.value);
+  // Reset form and close modal
+  subscriptionEmail.value = "";
+  showSubscribeModal.value = false;
+  // Show success message (you can implement this using a modal or toast notification)
+  alert(
+    "Спасибо за подписку! Мы будем держать вас в курсе последних новостей о WORLDS."
+  );
+};
 
-const featuredWorlds = ref([
+const conceptWorlds = [
   {
-    title: "Cyberpunk 2077",
-    image:
-      "https://www.cyberpunk.net/build/images/cyberpunk/keyart-booklet@1x-6fce3457.jpg",
+    name: "Глобальный Кампус",
+    description:
+      "Образовательная платформа с виртуальными аудиториями, библиотеками и пространствами для совместных проектов.",
+    icon: GraduationCap,
   },
   {
-    title: "Neon Tokyo",
-    image:
-      "https://www.fubiz.net/wp-content/uploads/2016/08/xavierportela-1-900x600.jpg",
+    name: "Бизнес Хаб",
+    description:
+      "Виртуальный офис с конференц-залами, досками для брейнштормов и инструментами для управления проектами.",
+    icon: Briefcase,
   },
   {
-    title: "ГосУслуги",
-    image:
-      "https://фондкругдобра.рф/wp-content/uploads/2021/12/Gosuslugi_logo.png",
-  },
-]);
-
-const trendingWorlds = ref([
-  {
-    title: "Vaporwave Lounge",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Творческая Студия",
+    description:
+      "Пространство для художников и дизайнеров с галереями, мастерскими и инструментами для совместного творчества.",
+    icon: Users,
   },
   {
-    title: "Dystopian Future",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Игровая Вселенная",
+    description:
+      "Мир для геймеров с турнирными аренами, стриминговыми зонами и пространствами для обсуждения игр.",
+    icon: Gamepad,
   },
   {
-    title: "Arcade Retrofest",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Глобальный Форум",
+    description:
+      "Платформа для международных конференций и дискуссий с мгновенным переводом и виртуальными выставочными залами.",
+    icon: Globe,
   },
-]);
+  {
+    name: "Научный Коллаборатор",
+    description:
+      "Виртуальные лаборатории и конференц-залы для ученых, с инструментами для совместных исследований и анализа данных.",
+    icon: Rocket,
+  },
+];
 </script>
 
-<style>
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap");
-
-:root {
-  --bg-main: #1e1e2e;
-  --bg-sidebar: #2a2a3a;
-  --bg-card: #2f2f3f;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0b0;
-  --accent-purple: #6c5ce7;
-  --accent-cyan: #00fff9;
-  --accent-hover: #5a4bd1;
-  --transition: all 0.3s ease;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.app-container {
-  font-family: "Orbitron", sans-serif;
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.cyber-lines {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.cyber-lines::before,
-.cyber-lines::after {
-  content: "";
-  position: absolute;
-  width: 200vw;
-  height: 200vh;
-  top: -50%;
-  left: -50%;
-  background-image: linear-gradient(
-      0deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    ),
-    linear-gradient(
-      90deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    );
-  background-size: 50px 50px;
-}
-
-.cyber-lines::after {
-  background-position: 25px 25px;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: var(--bg-sidebar);
-  padding: 20px;
-  transition: var(--transition);
-  z-index: 1;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: var(--transition);
-  border-radius: 5px;
-}
-
-.sidebar-item:hover,
-.sidebar-item.active {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-  transform: translateX(5px);
-  box-shadow: 0 0 10px var(--accent-purple);
-}
-
-.sidebar-item img {
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
-  filter: invert(0.7);
-  transition: var(--transition);
-}
-
-.sidebar-item:hover img,
-.sidebar-item.active img {
-  filter: invert(1);
-}
-
-.create-world-btn {
-  background-color: var(--accent-purple);
-  color: var(--text-primary);
-  border: none;
-  padding: 12px;
-  width: 100%;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: var(--transition);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-}
-
-.create-world-btn:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
-}
-
-.create-world-btn::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(45deg);
-  transition: var(--transition);
-}
-
-.create-world-btn:hover::before {
-  left: 100%;
-}
-
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
-  overflow-y: auto;
-  z-index: 1;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--bg-sidebar);
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  position: relative;
-}
-
-.glitch {
-  position: relative;
-  color: var(--text-primary);
-  text-shadow: 0 0 10px var(--accent-purple);
-}
-
-.glitch::before,
-.glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.glitch::before {
-  left: 2px;
-  text-shadow: -2px 0 var(--accent-cyan);
-  animation: glitch-animation 3s infinite linear alternate-reverse;
-}
-
-.glitch::after {
-  left: -2px;
-  text-shadow: 2px 0 var(--accent-purple);
-  animation: glitch-animation 2s infinite linear alternate-reverse;
-}
-
-@keyframes glitch-animation {
-  0% {
-    clip-path: inset(71% 0 10% 0);
-  }
-  20% {
-    clip-path: inset(29% 0 71% 0);
-  }
-  40% {
-    clip-path: inset(57% 0 43% 0);
-  }
-  60% {
-    clip-path: inset(14% 0 86% 0);
-  }
-  80% {
-    clip-path: inset(100% 0 1% 0);
-  }
-  100% {
-    clip-path: inset(43% 0 57% 0);
-  }
-}
-
-.header-icons {
-  display: flex;
-  align-items: center;
-}
-
-.header-icons img {
-  width: 24px;
-  height: 24px;
-  margin-left: 20px;
-  filter: invert(1);
-  transition: var(--transition);
-  cursor: pointer;
-}
-
-.header-icons img:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 5px var(--accent-cyan));
-}
-
-.search-bar {
-  background-color: var(--bg-sidebar);
-  border-radius: 25px;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-  transition: var(--transition);
-}
-
-.search-bar:focus-within {
-  box-shadow: 0 0 0 2px var(--accent-purple);
-}
-
-.search-bar img {
-  filter: invert(0.7);
-}
-
-.search-bar input {
-  background-color: transparent;
-  border: none;
-  color: var(--text-primary);
-  width: 100%;
-  margin-left: 10px;
-  font-size: 1rem;
-  outline: none;
-  font-family: "Orbitron", sans-serif;
-}
-
-.search-bar input::placeholder {
-  color: var(--text-secondary);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: var(--text-primary);
-  font-weight: 600;
-  text-shadow: 0 0 5px var(--accent-purple);
-}
-
-.worlds-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.world-card {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  background-color: var(--bg-card);
-  transition: var(--transition);
-  cursor: pointer;
-}
-
-.world-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
-}
-
-.world-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  transition: var(--transition);
-}
-
-.world-card:hover img {
-  transform: scale(1.05);
-}
-
-.world-title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: 15px;
-  color: var(--text-primary);
-  font-weight: 600;
-  transition: var(--transition);
-}
-
-.world-card:hover .world-title {
-  padding-bottom: 20px;
-  text-shadow: 0 0 5px var(--accent-cyan);
-}
-
-@media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    padding: 10px;
-  }
-
-  .sidebar-item {
-    padding: 8px;
-  }
-
-  .main-content {
-    padding: 10px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-icons {
-    margin-top: 10px;
-  }
-
-  .worlds-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-}
+<style scoped>
+/* Add any additional styles here */
 </style>

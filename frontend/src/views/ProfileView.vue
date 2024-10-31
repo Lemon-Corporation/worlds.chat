@@ -1,91 +1,181 @@
 <template>
-  <div class="app-container">
-    <div class="sidebar">
-      <div
-        v-for="item in sidebarItems"
-        :key="item.text"
-        :class="['sidebar-item', { active: item.active }]"
-      >
-        <img :src="item.icon" :alt="item.text" />
-        {{ item.text }}
+  <div
+    class="nexus-profile-page"
+    :class="{ 'nexus-collapsed-sidebar': isLeftSidebarCollapsed }"
+  >
+    <!-- Left Sidebar -->
+    <div class="nexus-left-sidebar">
+      <button @click="toggleLeftSidebar" class="nexus-collapse-button">
+        <img
+          :src="
+            isLeftSidebarCollapsed
+              ? 'https://api.iconify.design/lucide:chevrons-right.svg'
+              : 'https://api.iconify.design/lucide:chevrons-left.svg'
+          "
+          :alt="isLeftSidebarCollapsed ? 'Expand' : 'Collapse'"
+        />
+      </button>
+      <h1 class="nexus-worlds-title">WORLDS</h1>
+      <nav class="nexus-nav">
+        <ul class="nexus-nav-list">
+          <li v-for="item in navItems" :key="item.id" class="nexus-nav-item">
+            <a
+              :href="item.href"
+              class="nexus-nav-link"
+              :class="{ 'nexus-active': item.id === activeNavItem }"
+            >
+              <img :src="item.icon" :alt="item.name" class="nexus-nav-icon" />
+              <span class="nexus-nav-text">{{ item.name }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <button class="nexus-create-world-button" @click="openCreateWorldModal">
+        Create World
+      </button>
+      <div class="nexus-your-worlds">
+        <h3 class="nexus-your-worlds-title">Your WORLDS:</h3>
+        <ul class="nexus-your-worlds-list">
+          <li
+            v-for="world in yourWorlds"
+            :key="world.id"
+            class="nexus-your-world-item"
+          >
+            <img
+              :src="world.icon"
+              :alt="world.name"
+              class="nexus-your-world-icon"
+            />
+            <span class="nexus-your-world-name">{{ world.name }}</span>
+            <span class="nexus-your-world-members"
+              >{{ world.members }} members</span
+            >
+          </li>
+        </ul>
       </div>
-      <button class="create-world-btn">Create World</button>
     </div>
-    <div class="main-content">
-      <div class="header">
-        <h1>Profile</h1>
-        <div class="header-icons">
+
+    <!-- Main Content -->
+    <div class="nexus-main-content">
+      <header class="nexus-profile-header">
+        <div class="nexus-profile-cover">
           <img
-            v-for="icon in headerIcons"
-            :key="icon.alt"
-            :src="icon.src"
-            :alt="icon.alt"
+            src="/placeholder.svg?height=200&width=1000"
+            alt="Cover"
+            class="nexus-cover-image"
           />
         </div>
-      </div>
-      <div class="profile-info">
-        <img :src="user.avatar" :alt="user.name" class="profile-avatar" />
-        <div class="profile-details">
-          <h2>{{ user.name }}</h2>
-          <p class="username">@{{ user.username }}</p>
-          <p class="description">{{ user.description }}</p>
-          <div class="profile-stats">
-            <span
-              ><strong>{{ user.following }}</strong> Following</span
-            >
-            <span
-              ><strong>{{ user.followers }}</strong> Followers</span
-            >
-            <span
-              ><strong>{{ user.worlds }}</strong> Worlds</span
-            >
+        <div class="nexus-profile-info">
+          <img
+            src="https://i.pinimg.com/736x/9e/14/a8/9e14a82e1a9219374634c52a0a479334.jpg?height=120&width=120"
+            alt="Avatar"
+            class="nexus-profile-avatar"
+          />
+          <div class="nexus-profile-details">
+            <h1 class="nexus-profile-name">John Doe</h1>
+            <p class="nexus-profile-username">@johndoe</p>
+            <p class="nexus-profile-bio">Exploring the digital frontier</p>
           </div>
+          <button class="nexus-edit-profile-btn">Edit Profile</button>
         </div>
-      </div>
+      </header>
 
-      <h2 class="section-title">Recent Posts</h2>
-      <div class="posts-grid">
-        <div v-for="post in posts" :key="post.id" class="post-card">
-          <p>{{ post.content }}</p>
-          <span class="post-time">{{ post.time }}</span>
+      <div class="nexus-profile-content">
+        <div class="nexus-profile-tabs">
+          <button
+            v-for="tab in tabs"
+            :key="tab"
+            @click="activeTab = tab"
+            :class="{ 'nexus-active': activeTab === tab }"
+            class="nexus-tab-button"
+          >
+            {{ tab }}
+          </button>
         </div>
-      </div>
 
-      <h2 class="section-title">My Worlds</h2>
-      <div class="worlds-grid">
-        <div v-for="world in ownWorlds" :key="world.id" class="world-card">
-          <img :src="world.image" :alt="world.title" />
-          <div class="world-title">{{ world.title }}</div>
-        </div>
-      </div>
+        <div class="nexus-tab-content">
+          <div v-if="activeTab === 'Posts'" class="nexus-posts-section">
+            <div v-for="post in posts" :key="post.id" class="nexus-post-card">
+              <div class="nexus-post-header">
+                <img
+                  :src="post.authorAvatar"
+                  :alt="post.author"
+                  class="nexus-post-avatar"
+                />
+                <div class="nexus-post-meta">
+                  <p class="nexus-post-author">{{ post.author }}</p>
+                  <p class="nexus-post-date">{{ post.date }}</p>
+                </div>
+              </div>
+              <p class="nexus-post-content">{{ post.content }}</p>
+              <div class="nexus-post-actions">
+                <button class="nexus-post-action">
+                  <img
+                    src="https://api.iconify.design/lucide:thumbs-up.svg"
+                    alt="Like"
+                    class="nexus-action-icon"
+                  />
+                  {{ post.likes }}
+                </button>
+                <button class="nexus-post-action">
+                  <img
+                    src="https://api.iconify.design/lucide:message-circle.svg"
+                    alt="Comment"
+                    class="nexus-action-icon"
+                  />
+                  {{ post.comments }}
+                </button>
+                <button class="nexus-post-action">
+                  <img
+                    src="https://api.iconify.design/lucide:share-2.svg"
+                    alt="Share"
+                    class="nexus-action-icon"
+                  />
+                  Share
+                </button>
+              </div>
+            </div>
+          </div>
 
-      <h2 class="section-title">Subscribed Worlds</h2>
-      <div class="worlds-grid">
-        <div
-          v-for="world in subscribedWorlds"
-          :key="world.id"
-          class="world-card"
-        >
-          <img :src="world.image" :alt="world.title" />
-          <div class="world-title">{{ world.title }}</div>
-        </div>
-      </div>
+          <div v-if="activeTab === 'Worlds'" class="nexus-worlds-section">
+            <div
+              v-for="world in worlds"
+              :key="world.id"
+              class="nexus-world-card"
+            >
+              <img
+                :src="world.image"
+                :alt="world.name"
+                class="nexus-world-image"
+              />
+              <div class="nexus-world-info">
+                <h3 class="nexus-world-name">{{ world.name }}</h3>
+                <p class="nexus-world-members">{{ world.members }} members</p>
+              </div>
+            </div>
+          </div>
 
-      <h2 class="section-title">Achievements</h2>
-      <div class="achievements-grid">
-        <div
-          v-for="achievement in achievements"
-          :key="achievement.id"
-          class="achievement-card"
-        >
-          <img
-            :src="achievement.icon"
-            :alt="achievement.title"
-            class="achievement-icon"
-          />
-          <div class="achievement-details">
-            <h3>{{ achievement.title }}</h3>
-            <p>{{ achievement.description }}</p>
+          <div
+            v-if="activeTab === 'Achievements'"
+            class="nexus-achievements-section"
+          >
+            <div
+              v-for="achievement in achievements"
+              :key="achievement.id"
+              class="nexus-achievement-card"
+            >
+              <img
+                :src="achievement.icon"
+                :alt="achievement.name"
+                class="nexus-achievement-icon"
+              />
+              <div class="nexus-achievement-info">
+                <h3 class="nexus-achievement-name">{{ achievement.name }}</h3>
+                <p class="nexus-achievement-description">
+                  {{ achievement.description }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -96,463 +186,564 @@
 <script setup>
 import { ref } from "vue";
 
-const sidebarItems = ref([
+const isLeftSidebarCollapsed = ref(false);
+const activeNavItem = ref("worlds");
+const activeTab = ref("Posts");
+
+const tabs = ["Posts", "Worlds", "Achievements"];
+
+const navItems = [
   {
-    text: "Home",
-    icon: "https://api.iconify.design/lucide:home.svg",
-    active: false,
+    id: "messages",
+    name: "Messages",
+    icon: "https://api.iconify.design/lucide:message-square.svg",
+    href: "#",
   },
   {
-    text: "Profile",
-    icon: "https://api.iconify.design/lucide:user.svg",
-    active: true,
-  },
-  {
-    text: "Worlds",
+    id: "worlds",
+    name: "Worlds",
     icon: "https://api.iconify.design/lucide:globe.svg",
-    active: false,
+    href: "#",
   },
   {
-    text: "Messages",
-    icon: "https://api.iconify.design/lucide:message-circle.svg",
-    active: false,
+    id: "inner",
+    name: "Inner",
+    icon: "https://api.iconify.design/lucide:circle.svg",
+    href: "#",
   },
   {
-    text: "Notifications",
+    id: "notifications",
+    name: "Notifications",
     icon: "https://api.iconify.design/lucide:bell.svg",
-    active: false,
+    href: "#",
+  },
+];
+
+const yourWorlds = ref([
+  {
+    id: 1,
+    name: "Solstice",
+    icon: "https://api.dicebear.com/6.x/pixel-art/svg?seed=Solstice",
+    members: 5000,
+  },
+  {
+    id: 2,
+    name: "Neon City",
+    icon: "https://api.dicebear.com/6.x/pixel-art/svg?seed=NeonCity",
+    members: 3000,
+  },
+  {
+    id: 3,
+    name: "Space Odyssey",
+    icon: "https://api.dicebear.com/6.x/pixel-art/svg?seed=SpaceOdyssey",
+    members: 10000,
+  },
+  {
+    id: 4,
+    name: "Tech Talk",
+    icon: "https://api.dicebear.com/6.x/pixel-art/svg?seed=TechTalk",
+    members: 1000,
   },
 ]);
-
-const headerIcons = ref([
-  { src: "https://api.iconify.design/lucide:bell.svg", alt: "Notifications" },
-  { src: "https://api.iconify.design/lucide:settings.svg", alt: "Settings" },
-  { src: "https://api.iconify.design/lucide:log-out.svg", alt: "Logout" },
-]);
-
-const user = ref({
-  name: "Alex Johnson",
-  username: "alexj",
-  avatar:
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
-  description:
-    "Cyberpunk enthusiast and digital world creator. Exploring the boundaries of virtual reality and pushing the limits of imagination.",
-  following: 250,
-  followers: 10500,
-  worlds: 15,
-});
 
 const posts = ref([
   {
     id: 1,
+    author: "John Doe",
+    authorAvatar:
+      "https://i.pinimg.com/736x/9e/14/a8/9e14a82e1a9219374634c52a0a479334.jpg?height=40&width=40",
+    date: "2h ago",
     content:
-      'Just launched my new cyberpunk world "Neon Nights"! Come check it out and let me know what you think. #cyberpunk #virtualworlds',
-    time: "2 hours ago",
+      "Just discovered an amazing new virtual world! Can't wait to explore it further.",
+    likes: 42,
+    comments: 7,
   },
   {
     id: 2,
+    author: "John Doe",
+    authorAvatar: "/placeholder.svg?height=40&width=40",
+    date: "1d ago",
     content:
-      "Working on a new AI-powered NPC system for more immersive world interactions. The future of virtual worlds is here! #AI #gamedev",
-    time: "1 day ago",
-  },
-  {
-    id: 3,
-    content:
-      "Excited to announce my collaboration with @technovision on an upcoming VR project. Stay tuned for more details! #VR #collaboration",
-    time: "3 days ago",
+      "Working on a new project that will revolutionize digital interactions. Stay tuned!",
+    likes: 128,
+    comments: 23,
   },
 ]);
 
-const ownWorlds = ref([
+const worlds = ref([
   {
     id: 1,
-    title: "Neon Nights",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Cyberpunk City",
+    members: 1500,
+    image: "/placeholder.svg?height=100&width=100",
   },
   {
     id: 2,
-    title: "Quantum Realm",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Space Station Alpha",
+    members: 800,
+    image: "/placeholder.svg?height=100&width=100",
   },
   {
     id: 3,
-    title: "Steampunk City",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
-  },
-]);
-
-const subscribedWorlds = ref([
-  {
-    id: 4,
-    title: "Dystopian Future",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
-  },
-  {
-    id: 5,
-    title: "Enchanted Forest",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
-  },
-  {
-    id: 6,
-    title: "Space Odyssey",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hs4qEC8Fk3y3NMWLOM7TLOqKLQivYk.png",
+    name: "Virtual Reality Hub",
+    members: 2000,
+    image: "/placeholder.svg?height=100&width=100",
   },
 ]);
 
 const achievements = ref([
   {
     id: 1,
-    title: "World Creator",
-    icon: "https://api.iconify.design/lucide:trophy.svg",
-    description: "Created 10 unique worlds",
+    name: "World Creator",
+    description: "Created your first virtual world",
+    icon: "/placeholder.svg?height=50&width=50",
   },
   {
     id: 2,
-    title: "Social Butterfly",
-    icon: "https://api.iconify.design/lucide:users.svg",
-    description: "Reached 10,000 followers",
+    name: "Social Butterfly",
+    description: "Connected with 100 other users",
+    icon: "/placeholder.svg?height=50&width=50",
   },
   {
     id: 3,
-    title: "Trendsetter",
-    icon: "https://api.iconify.design/lucide:trending-up.svg",
-    description: "Had a world featured on the trending page",
+    name: "Explorer",
+    description: "Visited 50 different virtual worlds",
+    icon: "/placeholder.svg?height=50&width=50",
   },
 ]);
+
+const toggleLeftSidebar = () => {
+  isLeftSidebarCollapsed.value = !isLeftSidebarCollapsed.value;
+};
+
+const openCreateWorldModal = () => {
+  // Implement the logic to open the create world modal
+  console.log("Open create world modal");
+};
 </script>
 
-<style>
-:root {
-  --bg-main: #1e1e2e;
-  --bg-sidebar: #2a2a3a;
-  --bg-card: #2f2f3f;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0b0;
-  --accent-purple: #6c5ce7;
-  --accent-hover: #5a4bd1;
-  --transition: all 0.3s ease;
-}
+<style scoped>
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap");
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.app-container {
-  font-family: "Poppins", sans-serif;
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  display: flex;
+.nexus-profile-page {
+  display: grid;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
+  font-family: "Orbitron", sans-serif;
+  background-color: #0f1117;
+  color: #8b9bb4;
 }
 
-.sidebar {
-  width: 250px;
-  background-color: var(--bg-sidebar);
-  padding: 20px;
-  transition: var(--transition);
+.nexus-profile-page.nexus-collapsed-sidebar {
+  grid-template-columns: 60px 1fr;
 }
 
-.sidebar-item {
+.nexus-left-sidebar {
+  background-color: #0a0c10;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1e2533;
+  position: relative;
+  transition: width 0.3s ease;
+}
+
+.nexus-collapse-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.nexus-collapse-button img {
+  width: 20px;
+  height: 20px;
+  filter: invert(0.7);
+}
+
+.nexus-worlds-title {
+  color: #4169e1;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.nexus-nav-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.nexus-nav-link {
   display: flex;
   align-items: center;
-  padding: 10px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: var(--transition);
-  border-radius: 5px;
+  color: #8b9bb4;
+  text-decoration: none;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.sidebar-item:hover,
-.sidebar-item.active {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-  transform: translateX(5px);
+.nexus-nav-link:hover,
+.nexus-nav-link.nexus-active {
+  background-color: #1e2533;
+  color: #4169e1;
 }
 
-.sidebar-item img {
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
+.nexus-nav-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
   filter: invert(0.7);
-  transition: var(--transition);
 }
 
-.sidebar-item:hover img,
-.sidebar-item.active img {
-  filter: invert(1);
-}
-
-.create-world-btn {
-  background-color: var(--accent-purple);
-  color: var(--text-primary);
+.nexus-create-world-button {
+  background-color: #8a2be2;
+  color: #ffffff;
   border: none;
-  padding: 12px;
-  width: 100%;
-  border-radius: 5px;
+  padding: 0.75rem;
+  border-radius: 4px;
   cursor: pointer;
-  margin-top: 20px;
-  transition: var(--transition);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: bold;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
 }
 
-.create-world-btn:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
+.nexus-create-world-button:hover {
+  background-color: #9932cc;
 }
 
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
+.nexus-your-worlds {
+  margin-top: 1rem;
   overflow-y: auto;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--bg-sidebar);
+.nexus-your-worlds-title {
+  font-size: 0.9rem;
+  color: #8b9bb4;
+  margin-bottom: 0.5rem;
 }
 
-.header h1 {
-  font-size: 2.5rem;
-  font-weight: 600;
-  letter-spacing: 1px;
+.nexus-your-worlds-list {
+  list-style-type: none;
+  padding: 0;
 }
 
-.header-icons {
+.nexus-your-world-item {
   display: flex;
   align-items: center;
-}
-
-.header-icons img {
-  width: 24px;
-  height: 24px;
-  margin-left: 20px;
-  filter: invert(1);
-  transition: var(--transition);
+  padding: 0.5rem;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.header-icons img:hover {
-  transform: scale(1.1);
+.nexus-your-world-item:hover {
+  background-color: #1e2533;
 }
 
-.profile-info {
+.nexus-your-world-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.5rem;
+  border-radius: 4px;
+}
+
+.nexus-your-world-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nexus-your-world-members {
+  font-size: 0.7rem;
+  color: #4b5563;
+  margin-left: auto;
+}
+
+.nexus-main-content {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.nexus-profile-header {
+  margin-bottom: 2rem;
+}
+
+.nexus-profile-cover {
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.nexus-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nexus-profile-info {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 30px;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.profile-avatar {
+.nexus-profile-avatar {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-right: 20px;
+  border: 4px solid #1a1e2e;
+  margin-right: 1rem;
+  margin-bottom: 1rem;
 }
 
-.profile-details h2 {
+.nexus-profile-details {
+  flex: 1;
+  min-width: 200px;
+}
+
+.nexus-profile-name {
   font-size: 2rem;
-  margin-bottom: 5px;
+  font-weight: bold;
+  margin: 0;
+  color: #ffffff;
 }
 
-.username {
-  color: var(--text-secondary);
-  margin-bottom: 10px;
+.nexus-profile-username {
+  font-size: 1rem;
+  color: #4169e1;
+  margin: 0.25rem 0;
 }
 
-.description {
-  margin-bottom: 15px;
-  line-height: 1.5;
-}
-
-.profile-stats {
-  display: flex;
-  gap: 20px;
-}
-
-.profile-stats span {
-  color: var(--text-secondary);
-}
-
-.profile-stats strong {
-  color: var(--text-primary);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  margin: 30px 0 20px;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.posts-grid {
-  display: grid;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.post-card {
-  background-color: var(--bg-card);
-  padding: 20px;
-  border-radius: 10px;
-  transition: var(--transition);
-}
-
-.post-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.post-time {
-  display: block;
-  margin-top: 10px;
-  color: var(--text-secondary);
+.nexus-profile-bio {
   font-size: 0.9rem;
+  margin: 0.5rem 0;
 }
 
-.worlds-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.world-card {
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  background-color: var(--bg-card);
-  transition: var(--transition);
+.nexus-edit-profile-btn {
+  padding: 0.5rem 1rem;
+  background-color: #4169e1;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
 }
 
-.world-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+.nexus-edit-profile-btn:hover {
+  background-color: #3a5fcd;
 }
 
-.world-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  transition: var(--transition);
+.nexus-profile-tabs {
+  display: flex;
+  border-bottom: 1px solid #1e2533;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.world-card:hover img {
-  transform: scale(1.05);
+.nexus-tab-button {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: #8b9bb4;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.3s;
 }
 
-.world-title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: 15px;
-  color: var(--text-primary);
-  font-weight: 600;
-  transition: var(--transition);
+.nexus-tab-button.nexus-active {
+  color: #4169e1;
+  border-bottom: 2px solid #4169e1;
 }
 
-.world-card:hover .world-title {
-  padding-bottom: 20px;
+.nexus-tab-content {
+  margin-top: 1rem;
 }
 
-.achievements-grid {
-  display: grid;
-  gap: 20px;
+.nexus-post-card,
+.nexus-world-card,
+.nexus-achievement-card {
+  background-color: #1a1e2e;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 
-.achievement-card {
+.nexus-post-header {
   display: flex;
   align-items: center;
-  background-color: var(--bg-card);
-  padding: 15px;
-  border-radius: 10px;
-  transition: var(--transition);
+  margin-bottom: 0.5rem;
 }
 
-.achievement-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.achievement-icon {
+.nexus-post-avatar {
   width: 40px;
   height: 40px;
-  margin-right: 15px;
-  filter: invert(1);
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
-.achievement-details h3 {
-  font-size: 1.1rem;
-  margin-bottom: 5px;
+.nexus-post-meta {
+  flex: 1;
 }
 
-.achievement-details p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.nexus-post-author {
+  font-weight: bold;
+  margin: 0;
+  color: #ffffff;
+}
+
+.nexus-post-date {
+  font-size: 0.8rem;
+  color: #8b9bb4;
+  margin: 0;
+}
+
+.nexus-post-content {
+  margin-bottom: 1rem;
+}
+
+.nexus-post-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nexus-post-action {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #8b9bb4;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.nexus-post-action:hover {
+  color: #4169e1;
+}
+
+.nexus-action-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.25rem;
+  filter: invert(0.7);
+}
+
+.nexus-worlds-section,
+.nexus-achievements-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.nexus-world-image,
+.nexus-achievement-icon {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.nexus-world-name,
+.nexus-achievement-name {
+  font-size: 1rem;
+  margin: 0;
+  color: #ffffff;
+}
+
+.nexus-world-members,
+.nexus-achievement-description {
+  font-size: 0.8rem;
+  color: #8b9bb4;
+  margin: 0.25rem 0 0;
+}
+
+.nexus-collapsed-sidebar .nexus-left-sidebar {
+  width: 60px;
+}
+
+.nexus-collapsed-sidebar .nexus-worlds-title,
+.nexus-collapsed-sidebar .nexus-nav-text,
+.nexus-collapsed-sidebar .nexus-create-world-button,
+.nexus-collapsed-sidebar .nexus-your-worlds-title,
+.nexus-collapsed-sidebar .nexus-your-world-name,
+.nexus-collapsed-sidebar .nexus-your-world-members {
+  display: none;
+}
+
+.nexus-collapsed-sidebar .nexus-nav-link {
+  justify-content: center;
+}
+
+.nexus-collapsed-sidebar .nexus-nav-icon {
+  margin-right: 0;
+}
+
+.nexus-collapsed-sidebar .nexus-your-world-item {
+  justify-content: center;
+}
+
+.nexus-collapsed-sidebar .nexus-your-world-icon {
+  margin-right: 0;
 }
 
 @media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
+  .nexus-profile-page {
+    grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    width: 100%;
-    padding: 10px;
+  .nexus-left-sidebar {
+    display: none;
   }
 
-  .sidebar-item {
-    padding: 8px;
-  }
-
-  .main-content {
-    padding: 10px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-icons {
-    margin-top: 10px;
-  }
-
-  .profile-info {
+  .nexus-profile-info {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  .profile-avatar {
+  .nexus-profile-avatar {
     margin-right: 0;
-    margin-bottom: 20px;
   }
 
-  .profile-stats {
-    justify-content: center;
+  .nexus-profile-tabs {
+    justify-content: space-between;
   }
 
-  .worlds-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  .nexus-tab-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .nexus-worlds-section,
+  .nexus-achievements-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .nexus-main-content {
+    padding: 1rem;
+  }
+
+  .nexus-profile-name {
+    font-size: 1.5rem;
+  }
+
+  .nexus-profile-username,
+  .nexus-profile-bio {
+    font-size: 0.8rem;
+  }
+
+  .nexus-post-actions {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

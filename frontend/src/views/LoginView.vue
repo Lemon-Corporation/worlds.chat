@@ -1,307 +1,222 @@
 <template>
-  <div class="login-page">
-    <div class="cyber-lines"></div>
-    <main class="login-container">
-      <div class="login-header">
-        <h1>WORLDS</h1>
-        <p>Enter the Grid</p>
+  <div
+    class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+  >
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-green-600 via-green-500 to-green-300 opacity-50"
+    ></div>
+    <div
+      class="absolute inset-0 particles-container"
+      ref="particlesContainer"
+    ></div>
+
+    <div
+      class="max-w-md w-full space-y-8 bg-white bg-opacity-90 backdrop-blur-lg p-10 rounded-xl shadow-2xl relative z-10 transform transition-all duration-500 ease-in-out"
+      :class="{
+        'translate-y-0 opacity-100': showForm,
+        'translate-y-10 opacity-0': !showForm,
+      }"
+    >
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Войти в WORLDS
+        </h2>
       </div>
-      <form class="login-form" @submit.prevent="handleSubmit">
-        <div class="input-group">
-          <input
-            type="text"
-            id="username"
-            v-model="username"
-            required
-            placeholder=" "
-          />
-          <label for="username">Username</label>
+      <div class="mt-8 space-y-6">
+        <div class="flex justify-center space-x-4 mb-4">
+          <button
+            @click="loginMethod = 'email'"
+            :class="{
+              'bg-green-600 text-white': loginMethod === 'email',
+              'bg-gray-200 text-gray-700': loginMethod !== 'email',
+            }"
+            class="px-4 py-2 rounded-md transition-colors duration-300 ease-in-out"
+          >
+            <Mail class="inline-block mr-2" size="18" />
+            Email
+          </button>
+          <button
+            @click="loginMethod = 'phone'"
+            :class="{
+              'bg-green-600 text-white': loginMethod === 'phone',
+              'bg-gray-200 text-gray-700': loginMethod !== 'phone',
+            }"
+            class="px-4 py-2 rounded-md transition-colors duration-300 ease-in-out"
+          >
+            <Phone class="inline-block mr-2" size="18" />
+            Телефон
+          </button>
         </div>
-        <div class="input-group">
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            required
-            placeholder=" "
-          />
-          <label for="password">Password</label>
-        </div>
-        <button type="submit" class="login-btn">Login</button>
-      </form>
-      <div class="links">
-        <a href="#">Forgot Password?</a>
-        <a href="#">Create Account</a>
+
+        <form @submit.prevent="handleLogin" class="mt-8 space-y-6">
+          <a
+            href="/"
+            class="font-medium text-green-600 hover:text-green-500 transition-colors duration-300 ease-in-out"
+            >На главную</a
+          >
+          <div class="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label :for="loginMethod" class="sr-only">{{
+                loginMethod === "email" ? "Email" : "Телефон"
+              }}</label>
+              <input
+                :id="loginMethod"
+                :name="loginMethod"
+                :type="loginMethod === 'email' ? 'email' : 'tel'"
+                :autocomplete="loginMethod === 'email' ? 'email' : 'tel'"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm transition-all duration-300 ease-in-out"
+                :placeholder="
+                  loginMethod === 'email' ? 'Email адрес' : 'Номер телефона'
+                "
+                v-model="loginData.identifier"
+              />
+            </div>
+            <div>
+              <label for="password" class="sr-only">Пароль</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm transition-all duration-300 ease-in-out"
+                placeholder="Пароль"
+                v-model="loginData.password"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded transition-all duration-300 ease-in-out"
+              />
+              <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                Запомнить меня
+              </label>
+            </div>
+
+            <div class="text-sm">
+              <a
+                href="#"
+                class="font-medium text-green-600 hover:text-green-500 transition-colors duration-300 ease-in-out"
+              >
+                Забыли пароль?
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 ease-in-out"
+            >
+              <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                <LockClosed
+                  class="h-5 w-5 text-green-500 group-hover:text-green-400 transition-colors duration-300 ease-in-out"
+                  aria-hidden="true"
+                />
+              </span>
+              Войти
+            </button>
+          </div>
+        </form>
       </div>
-    </main>
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          Нет аккаунта?
+          <a
+            href="/auth/sign-up"
+            class="font-medium text-green-600 hover:text-green-500 transition-colors duration-300 ease-in-out"
+          >
+            Зарегистрироваться
+          </a>
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "LoginPage",
-  data() {
-    return {
-      username: "",
-      password: "",
-    };
-  },
-  methods: {
-    handleSubmit() {
-      // Handle login logic here
-      console.log("Login attempted with:", this.username, this.password);
-      // You would typically make an API call here
-    },
-  },
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue";
+import { Mail, Phone, LockClosed } from "lucide-vue-next";
+
+const loginMethod = ref("email");
+const loginData = ref({
+  identifier: "",
+  password: "",
+});
+const showForm = ref(false);
+const particlesContainer = ref(null);
+
+const handleLogin = () => {
+  // Здесь будет логика входа
+  console.log("Попытка входа с:", loginData.value);
+};
+
+onMounted(() => {
+  showForm.value = true;
+  initParticles();
+});
+
+onUnmounted(() => {
+  // Очистка частиц при размонтировании компонента
+  if (particlesContainer.value) {
+    particlesContainer.value.innerHTML = "";
+  }
+});
+
+const initParticles = () => {
+  const particlesCount = 50;
+  const colors = ["#8B5CF6", "#EC4899", "#6366F1"];
+  const particles = [];
+
+  for (let i = 0; i < particlesCount; i++) {
+    particles.push(createParticle());
+  }
+
+  function createParticle() {
+    const particle = document.createElement("div");
+    particle.style.position = "absolute";
+    particle.style.width = "6px";
+    particle.style.height = "6px";
+    particle.style.background =
+      colors[Math.floor(Math.random() * colors.length)];
+    particle.style.borderRadius = "50%";
+    particle.style.top = Math.random() * 100 + "%";
+    particle.style.left = Math.random() * 100 + "%";
+    particle.style.transform = "scale(0)";
+    particle.style.transition = "transform 1s ease-out, opacity 1s ease-out";
+    particle.style.opacity = "0";
+    particlesContainer.value.appendChild(particle);
+
+    setTimeout(() => {
+      particle.style.transform = "scale(1)";
+      particle.style.opacity = "0.7";
+    }, 100);
+
+    setTimeout(() => {
+      particle.style.transform = "scale(1.5)";
+      particle.style.opacity = "0";
+    }, 1000 + Math.random() * 3000);
+
+    setTimeout(() => {
+      particle.remove();
+      particles.splice(particles.indexOf(particle), 1);
+      particles.push(createParticle());
+    }, 4000 + Math.random() * 3000);
+
+    return particle;
+  }
 };
 </script>
 
-<style>
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap");
-
-:root {
-  --bg-main: #1e1e2e;
-  --bg-card: #2f2f3f;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0b0;
-  --accent-purple: #6c5ce7;
-  --accent-hover: #5a4bd1;
-  --accent-cyan: #00fff9;
-  --transition: all 0.3s ease;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.login-page {
-  font-family: "Orbitron", sans-serif;
-  background-color: var(--bg-main);
-  color: var(--text-primary);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  overflow: hidden;
-  position: relative;
-}
-
-.login-container {
-  background-color: var(--bg-card);
-  border-radius: 10px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
-  position: relative;
-  z-index: 1;
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.login-header h1 {
-  font-size: 3rem;
-  color: var(--accent-purple);
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(108, 92, 231, 0.5);
-  animation: glitch 5s infinite alternate;
-}
-
-.login-header p {
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.input-group {
-  position: relative;
-}
-
-.input-group label {
-  position: absolute;
-  left: 1rem;
-  top: 0.8rem;
-  color: var(--text-secondary);
-  transition: var(--transition);
+<style scoped>
+.particles-container {
   pointer-events: none;
-}
-
-.input-group input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  background-color: rgba(42, 42, 58, 0.8);
-  border: 1px solid var(--accent-purple);
-  border-radius: 5px;
-  color: var(--text-primary);
-  transition: var(--transition);
-}
-
-.input-group input:focus,
-.input-group input:not(:placeholder-shown) {
-  outline: none;
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 2px rgba(0, 255, 249, 0.2);
-}
-
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label {
-  transform: translateY(-1.5rem) scale(0.8);
-  color: var(--accent-cyan);
-}
-
-.login-btn {
-  background-color: var(--accent-purple);
-  color: var(--text-primary);
-  border: none;
-  padding: 0.75rem;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  overflow: hidden;
-  font-family: "Orbitron", sans-serif;
-}
-
-.login-btn:hover {
-  background-color: var(--accent-hover);
-}
-
-.login-btn::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(45deg);
-  transition: var(--transition);
-}
-
-.login-btn:hover::before {
-  left: 100%;
-}
-
-.links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
-.links a {
-  color: var(--accent-purple);
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: var(--transition);
-}
-
-.links a:hover {
-  color: var(--accent-cyan);
-  text-shadow: 0 0 5px rgba(0, 255, 249, 0.5);
-}
-
-.cyber-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.cyber-lines::before,
-.cyber-lines::after {
-  content: "";
-  position: absolute;
-  width: 200vw;
-  height: 200vh;
-  top: -50%;
-  left: -50%;
-  background-image: linear-gradient(
-      0deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    ),
-    linear-gradient(
-      90deg,
-      transparent 24%,
-      rgba(108, 92, 231, 0.05) 25%,
-      rgba(108, 92, 231, 0.05) 26%,
-      transparent 27%,
-      transparent 74%,
-      rgba(108, 92, 231, 0.05) 75%,
-      rgba(108, 92, 231, 0.05) 76%,
-      transparent 77%,
-      transparent
-    );
-  background-size: 50px 50px;
-}
-
-.cyber-lines::after {
-  background-position: 25px 25px;
-}
-
-@keyframes glitch {
-  0% {
-    text-shadow: 0.05em 0 0 var(--accent-cyan),
-      -0.05em -0.025em 0 var(--accent-purple);
-  }
-  14% {
-    text-shadow: 0.05em 0 0 var(--accent-cyan),
-      -0.05em -0.025em 0 var(--accent-purple);
-  }
-  15% {
-    text-shadow: -0.05em -0.025em 0 var(--accent-cyan),
-      0.025em 0.025em 0 var(--accent-purple);
-  }
-  49% {
-    text-shadow: -0.05em -0.025em 0 var(--accent-cyan),
-      0.025em 0.025em 0 var(--accent-purple);
-  }
-  50% {
-    text-shadow: 0.025em 0.05em 0 var(--accent-cyan),
-      0.05em 0 0 var(--accent-purple);
-  }
-  99% {
-    text-shadow: 0.025em 0.05em 0 var(--accent-cyan),
-      0.05em 0 0 var(--accent-purple);
-  }
-  100% {
-    text-shadow: -0.025em 0 0 var(--accent-cyan),
-      -0.025em -0.025em 0 var(--accent-purple);
-  }
-}
-
-@media (max-width: 768px) {
-  .login-container {
-    padding: 1.5rem;
-  }
-  .login-header h1 {
-    font-size: 2.5rem;
-  }
 }
 </style>
