@@ -44,3 +44,46 @@ def get_world(
             detail="World not found"
         )
     return db_world
+
+
+
+@router.delete("/{world_id}", status_code=204)
+def delete_world(
+    world_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_world = db.query(World).filter(World.id == world_id).first()
+    if not db_world:
+        raise HTTPException(status_code=404, detail="World not found.")
+
+    if db_world.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    db.delete(db_world)
+    db.commit()
+    return None
+
+
+@router.patch("/{world_id}/update", response_model=WorldResponse)
+def update_world(
+    world_id: int, 
+    update_data: WorldUpdate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    db_world = db.query(World).filter(World.id == world_id).first()
+    if not db_world:
+        raise HTTPException(status_code=404, detail="World not found.")
+
+    if db_world.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    if update_data.name is not None:
+        db_world.name = update_data.name
+    if update_data.description is not None:
+        db_world.description = update_data.description
+
+    db.commit()
+    db.refresh(db_world)
+    return db_world
