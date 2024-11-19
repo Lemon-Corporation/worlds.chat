@@ -3,6 +3,9 @@
 </template>
 
 <style>
+body {
+  margin: 0;
+}
 @media screen and (min-width: 1201px) {
   ::-webkit-scrollbar-thumb {
     /* Укажи цвет скроллбара */
@@ -12,7 +15,7 @@
   }
   ::-webkit-scrollbar {
     /* Укажи ширину вертикального скроллбара */
-    width: 5px;
+    width: 0px;
     /* Укажи высоту горизонтального скроллбара */
     height: 5px;
     /* Укажи цвет фона под скроллбаром */

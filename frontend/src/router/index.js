@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
-import WorldsView from "../views/WorldsView.vue";
-import ProfileView from "../views/ProfileView.vue";
-import MessagesView from "../views/MessagesView.vue";
-import WorldRoomView from "../views/WorldRoomView.vue";
+import Worlds from "../views/WorldsView.vue";
 import LoginView from "../views/LoginView.vue";
+import RegisterView from "../views/RegisterView.vue";
+import Support from "../views/SupportCenterView.vue";
+
 const routes = [
   {
     path: "/",
@@ -12,38 +12,24 @@ const routes = [
     component: HomeView,
   },
   {
-    path: "/about",
-    name: "about",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    path: "/support-center",
+    name: "Support",
+    component: Support,
   },
   {
     path: "/worlds",
     name: "Worlds",
-    component: WorldsView,
-  },
-  {
-    path: "/profile",
-    name: "Profile",
-    component: ProfileView,
-  },
-  {
-    path: "/messages",
-    name: "Messages",
-    component: MessagesView,
-  },
-  {
-    path: "/worldroom",
-    name: "WorldRoom",
-    component: WorldRoomView,
+    component: Worlds,
   },
   {
     path: "/auth/sign-in",
     name: "Sign-In",
     component: LoginView,
+  },
+  {
+    path: "/auth/sign-up",
+    name: "Sign-Up",
+    component: RegisterView,
   },
 ];
 
