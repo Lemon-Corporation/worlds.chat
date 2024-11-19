@@ -6,7 +6,8 @@
 **/.DS_store
 
 # Go builds
-**/app/
+# Ignore Go app builds but not Python app
+/app/
 **/build/
 
 # Temporary files
