@@ -99,7 +99,7 @@ const handleSubmit = async () => {
     if (rememberMe.value) {
       localStorage.setItem('token', response.access_token);
     }
-
+    router.push('/app');
     // Очистка формы после успешного входа
     email.value = '';
     password.value = '';

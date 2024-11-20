@@ -35,32 +35,27 @@ const actions = {
     }
   },
 
-  async login({ commit }, credentials) {
+  const login = async ({ commit }, { email, password }) => {
     try {
-      const response = await axios.post('/auth/login', credentials);
-      const { access_token, refresh_token } = response.data;
-      
-      commit('SET_TOKEN', access_token);
-      
-      // Сохраняем refresh token в localStorage
-      localStorage.setItem('refresh_token', refresh_token);
-      
-      // Устанавливаем токен для будущих запросов
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      // Здесь мы можем сделать дополнительный запрос для получения данных пользователя,
-      // если сервер не возвращает их вместе с токенами
-      // Например:
-      // const userResponse = await axios.get('/auth/me');
-      // commit('SET_USER', userResponse.data);
-      
+      const response = await axios.post('/auth/login', { email, password });
+      commit('SET_USER', response.data);
       return response.data;
     } catch (error) {
-      console.error('Ошибка при входе:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.detail || 'Ошибка входа');
+      if (error.response && error.response.data && error.response.data.detail) {
+        // Обработка структурированной ошибки от FastAPI
+        const errorDetails = error.response.data.detail;
+        let errorMessage = '';
+        if (Array.isArray(errorDetails)) {
+          errorMessage = errorDetails.map(err => err.msg).join(', ');
+        } else {
+          errorMessage = errorDetails;
+        }
+        throw new Error(errorMessage);
+      } else {
+        throw new Error('Произошла ошибка при входе в систему');
+      }
     }
   },
-  
   async logout({ commit }) {
     try {
       const token = state.token;
