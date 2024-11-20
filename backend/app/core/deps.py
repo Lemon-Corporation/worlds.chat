@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.db.database import get_db
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/user/sign/in")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
