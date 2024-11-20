@@ -1,18 +1,15 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, messages  
-from app.api import worlds
+from app.db.database import engine, Base
+from app.api.auth import router as auth_router
+from app.api.worlds import router as worlds_router
+from app.api.channels import router as channels_router
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Создаем таблицы
+Base.metadata.create_all(bind=engine)
 
-app.include_router(auth.router)
-app.include_router(messages.router)  
-app.include_router(worlds.router)
+# Подключаем роутеры
+app.include_router(auth_router)
+app.include_router(worlds_router)
+app.include_router(channels_router)

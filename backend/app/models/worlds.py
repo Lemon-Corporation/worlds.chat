@@ -13,4 +13,5 @@ class World(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     owner_id = Column(Integer, ForeignKey('users.id'))
 
-    #channels = relationship("Channel", back_populates="world")
+    # Используем строку вместо прямой ссылки на класс
+    channels = relationship("Channel", back_populates="world", cascade="all, delete-orphan")
