@@ -23,3 +23,7 @@ class WorldCreate(BaseModel):
 class WorldUpdate(BaseModel):
     name: Optional[str]
     description: Optional[str]
+
+
+class UserWorldsList(BaseModel):
+    worlds: List[WorldResponse]
