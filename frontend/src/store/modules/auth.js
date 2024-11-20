@@ -35,7 +35,7 @@ const actions = {
     }
   },
 
-  const login = async ({ commit }, { email, password }) => {
+  async login({ commit }, { email, password }) {
     try {
       const response = await axios.post('/auth/login', { email, password });
       commit('SET_USER', response.data);
