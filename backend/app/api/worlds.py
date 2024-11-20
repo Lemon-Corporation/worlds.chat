@@ -37,7 +37,8 @@ def create_world(
         name=world.name, 
         description=world.description,
         owner_id=current_user.id,
-        is_personal_chat=world.is_personal_chat
+        icon_url=world.icon_url,
+        is_personal_chat=world.is_personal_chat,
     )
 
     db.add(db_world)
@@ -107,7 +108,7 @@ def update_world(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    db_world = db.query(World).filter(World.id == world_id).first()
+    db_world: World = db.query(World).filter(World.id == world_id).first()
     if not db_world:
         raise HTTPException(status_code=404, detail="World not found.")
 
@@ -118,6 +119,8 @@ def update_world(
         db_world.name = update_data.name
     if update_data.description is not None:
         db_world.description = update_data.description
+    if update_data.icon_url is not None:
+        db_world.icon_url = update_data.icon_url
 
     db.commit()
     db.refresh(db_world)
