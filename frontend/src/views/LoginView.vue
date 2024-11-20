@@ -46,12 +46,16 @@
             </a>
           </div>
         </div>
+        <div v-if="error" class="text-red-500 text-sm mt-2">
+          {{ error }}
+        </div>
         <div>
           <button
             type="submit"
             class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-900 bg-[#00ff9d] hover:bg-[#00cc7d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00ff9d]"
+            :disabled="isLoading"
           >
-            Войти
+            {{ isLoading ? 'Вход...' : 'Войти' }}
           </button>
         </div>
       </form>
@@ -67,20 +71,47 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
 const rememberMe = ref(false);
+const error = ref('');
+const isLoading = ref(false);
 
-const handleSubmit = () => {
-  // Здесь будет логика отправки данных на сервер
-  console.log('Вход:', { email: email.value, password: password.value, rememberMe: rememberMe.value });
-  
-  // Очистка формы после успешного входа
-  email.value = '';
-  password.value = '';
-  rememberMe.value = false;
+const handleSubmit = async () => {
+  error.value = '';
+  isLoading.value = true;
 
-  alert('Вход выполнен успешно!');
+  try {
+    const response = await store.dispatch('auth/login', {
+      username: email.value,
+      password: password.value
+    });
+
+    console.log('Вход выполнен успешно:', response);
+
+    // Сохранение токена в localStorage, если выбрано "Запомнить меня"
+    if (rememberMe.value) {
+      localStorage.setItem('token', response.access_token);
+    }
+
+    // Очистка формы после успешного входа
+    email.value = '';
+    password.value = '';
+    rememberMe.value = false;
+
+    // Перенаправление на главную страницу или панель управления
+    router.push('/app');
+  } catch (err) {
+    console.error('Ошибка при входе:', err);
+    error.value = err.message || 'Произошла ошибка при входе. Пожалуйста, попробуйте снова.';
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

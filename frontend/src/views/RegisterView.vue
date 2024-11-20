@@ -83,6 +83,11 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
 
 const username = ref('');
 const email = ref('');
@@ -90,7 +95,8 @@ const password = ref('');
 const confirmPassword = ref('');
 const agreeToTerms = ref(false);
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
+  console.log('Форма отправлена');
   if (password.value !== confirmPassword.value) {
     alert('Пароли не совпадают');
     return;
@@ -101,20 +107,27 @@ const handleSubmit = () => {
     return;
   }
 
-  // Здесь будет логика отправки данных на сервер
-  console.log('Регистрация:', { username: username.value, email: email.value, password: password.value });
-  
-  // Очистка формы после успешной регистрации
-  username.value = '';
-  email.value = '';
-  password.value = '';
-  confirmPassword.value = '';
-  agreeToTerms.value = false;
+  try {
+    console.log('Отправка данных на сервер:', { username: username.value, email: email.value, password: password.value });
+    await store.dispatch('auth/register', {
+      username: username.value,
+      email: email.value,
+      password: password.value
+    });
 
-  alert('Регистрация успешна!');
+    console.log('Регистрация успешна');
+    // Очистка формы после успешной регистрации
+    username.value = '';
+    email.value = '';
+    password.value = '';
+    confirmPassword.value = '';
+    agreeToTerms.value = false;
+
+    alert('Регистрация успешна!');
+    router.push('/auth/sign-in'); // Перенаправление на страницу входа
+  } catch (error) {
+    console.error('Ошибка при регистрации:', error);
+    alert(error.message || 'Произошла ошибка при регистрации');
+  }
 };
 </script>
-
-<style scoped>
-/* Дополнительные стили, если необходимо */
-</style>
