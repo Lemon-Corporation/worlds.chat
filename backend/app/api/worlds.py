@@ -5,6 +5,7 @@ from app.schemas.worlds import WorldCreate, WorldUpdate, WorldResponse
 from app.db.database import get_db
 from app.core.security import oauth2_scheme, get_current_user
 from app.models.user import User
+from app.models.members import WorldMember
 
 router = APIRouter(
     prefix="/worlds",
@@ -29,7 +30,17 @@ def create_world(
     db.commit()
     db.refresh(db_world)
 
+    # The creator of the world is also its member
+    membership = WorldMember(
+        world_id=db_world.id,
+        user_id = current_user.id,
+        role="owner"
+    )
+    db.add(membership)
+    db.commit()
+
     return db_world
+
 
 @router.get("/{world_id}", response_model=WorldResponse)
 def get_world(
