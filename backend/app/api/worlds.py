@@ -19,11 +19,25 @@ def create_world(
 ):
     if not world.name:
         raise HTTPException(status_code=400, detail="World name is required.")
+    
+    if world.parent_world_id:
+        parent_world = db.query(World).filter(World.id == world.parent_world_id).first()
+        if not parent_world:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Parent world with id {world.parent_world_id} not found"
+            )
+        if parent_world.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=403, 
+                detail="You do not have permission to use this parent world"
+            )
 
     db_world = World(
         name=world.name, 
         description=world.description,
-        owner_id=current_user.id  
+        owner_id=current_user.id,
+        parent_world_id=world.parent_world_id
     )
     db.add(db_world)
     db.commit()

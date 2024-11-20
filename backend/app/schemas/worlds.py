@@ -9,17 +9,20 @@ class WorldResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     owner_id: int
+    parent_world_id: Optional[int] = None
 
 
     class Config:
-        form_mode = True
+        orm_mode = True
 
 
 class WorldCreate(BaseModel):
     name: str
     description: Optional[str]
+    parent_world_id: Optional[int] = None
 
 
 class WorldUpdate(BaseModel):
     name: Optional[str]
     description: Optional[str]
+    parent_world_id: Optional[int]
