@@ -31,7 +31,8 @@ def get_participating_worlds(
             description=world.description,
             created_at=world.created_at,
             updated_at=world.updated_at,
-            owner_id=world.owner_id
+            owner_id=world.owner_id,
+            is_personal_chat=world.is_personal_chat
         ) for world, _ in worlds
     ]
 

@@ -20,12 +20,26 @@ def create_world(
 ):
     if not world.name:
         raise HTTPException(status_code=400, detail="World name is required.")
+    
+    # If we're creating a personal chat, we need 
+    # to check if the partner exists.
+    partner = None
+
+    if world.is_personal_chat:
+        if not world.partner_id:
+            raise HTTPException(status_code=400, detail="To create a personal chat you need an ID of your partner.")
+
+        partner = db.query(User).filter(User.id == world.partner_id).first()
+        if not partner:
+            raise HTTPException(status_code=403, details="Provided partner does not exist.")
 
     db_world = World(
         name=world.name, 
         description=world.description,
-        owner_id=current_user.id  
+        owner_id=current_user.id,
+        is_personal_chat=world.is_personal_chat
     )
+
     db.add(db_world)
     db.commit()
     db.refresh(db_world)
@@ -37,6 +51,16 @@ def create_world(
         role="owner"
     )
     db.add(membership)
+
+    # And add a partner to the personal world
+    if partner:
+        partner_membership = WorldMember(
+            world_id=db_world.id,
+            user_id = partner.id,
+            role="owner"
+        )
+        db.add(partner_membership)
+
     db.commit()
 
     return db_world
