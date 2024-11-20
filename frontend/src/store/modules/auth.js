@@ -42,7 +42,6 @@ const actions = {
       return response.data;
     } catch (error) {
       if (error.response && error.response.data && error.response.data.detail) {
-        // Обработка структурированной ошибки от FastAPI
         const errorDetails = error.response.data.detail;
         let errorMessage = '';
         if (Array.isArray(errorDetails)) {
