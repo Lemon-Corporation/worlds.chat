@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["worlds"]
 )
 
-@router.post("/create", response_model=WorldResponse, status_code=201)
+@router.post("/", response_model=WorldResponse, status_code=201)
 def create_world(
     world: WorldCreate, 
     db: Session = Depends(get_db),
@@ -101,7 +101,7 @@ def delete_world(
     return None
 
 
-@router.patch("/{world_id}/update", response_model=WorldResponse)
+@router.patch("/{world_id}", response_model=WorldResponse)
 def update_world(
     world_id: int, 
     update_data: WorldUpdate, 
