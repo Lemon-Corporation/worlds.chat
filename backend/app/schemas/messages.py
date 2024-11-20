@@ -10,3 +10,6 @@ class MessageResponse(BaseModel):
     channel_id: int
     content: str
     timestamp: datetime
+
+class MessageUpdate(BaseModel):
+    content: str
