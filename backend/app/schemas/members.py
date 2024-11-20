@@ -14,3 +14,11 @@ class MemberResponse(BaseModel):
 class MemberListResponse(BaseModel):
     world_id: int
     members: List[MemberResponse]  # Используем List из typing
+    
+class RoleUpdate(BaseModel):
+    role: str
+
+class RoleUpdateResponse(BaseModel):
+    message: str
+    user_id: int
+    new_role: str
