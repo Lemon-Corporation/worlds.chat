@@ -5,6 +5,7 @@ from app.api.worlds import router as worlds_router
 from app.api.channels import router as channels_router
 from app.api.members import router as members_router
 from app.api import roles
+from app.api import subscribers
 
 app = FastAPI()
 
@@ -17,3 +18,4 @@ app.include_router(worlds_router)
 app.include_router(channels_router)
 app.include_router(members_router, prefix="/worlds")
 app.include_router(roles.router, prefix="/worlds", tags=["roles"])
+app.include_router(subscribers.router, prefix="/worlds", tags=["subscribers"])
