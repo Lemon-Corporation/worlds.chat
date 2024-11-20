@@ -6,6 +6,8 @@ from app.api.channels import router as channels_router
 from app.api.members import router as members_router
 from app.api import roles
 from app.api import subscribers
+from app.api import messages
+
 
 app = FastAPI()
 
@@ -13,6 +15,7 @@ app = FastAPI()
 Base.metadata.create_all(bind=engine)
 
 # Подключаем роутеры
+app.include_router(messages.router, prefix="/messages", tags=["messages"])
 app.include_router(auth_router)
 app.include_router(worlds_router)
 app.include_router(channels_router)
