@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class UserCreate(BaseModel):
     username: str
@@ -11,4 +12,20 @@ class UserResponse(BaseModel):
     email: str
 
     class Config:
-        from_attributes = True  
+        from_attributes = True
+
+class UserPublicInfoResponse(BaseModel):
+    id: int
+    username: str
+    profile_pic_url: Optional[str]
+    banner_url: Optional[str]
+    bio: str
+
+class UserPrivateInfoResponse(UserPublicInfoResponse):
+    email: Optional[str]
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[str]| None = None
+    profile_pic_url: Optional[str] | None = None
+    banner_url: Optional[str] | None = None
+    bio: Optional[str] | None = None
