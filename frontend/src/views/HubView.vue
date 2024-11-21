@@ -960,17 +960,15 @@ const toggleCategory = (worldId, categoryId) => {
     }
   }
 };
-const draggedChannel = ref(null); 
+let draggedChannel = null;
 const startDrag = (event, channel) => {
   draggedChannel = channel;
   isDragging.value = true;
   event.dataTransfer.setData("text/plain", JSON.stringify(channel));
 };
-
 const endDrag = () => {
   isDragging.value = false;
 };
-
 const onDrop = (event) => {
   isDragging.value = false;
   const channelData = JSON.parse(event.dataTransfer.getData("text/plain"));
@@ -978,7 +976,6 @@ const onDrop = (event) => {
     activeChannels.value.push(channelData);
   }
 };
-
 const onDropOverlay = (event, index) => {
   isDragging.value = false;
   const channelData = JSON.parse(event.dataTransfer.getData("text/plain"));
