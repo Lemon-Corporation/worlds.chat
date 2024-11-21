@@ -50,18 +50,6 @@
             placeholder="Подтвердите пароль"
           />
         </div>
-        <div class="flex items-center">
-          <input
-            id="terms"
-            v-model="agreeToTerms"
-            type="checkbox"
-            required
-            class="h-4 w-4 text-[#00ff9d] focus:ring-[#00ff9d] border-gray-300 rounded"
-          />
-          <label for="terms" class="ml-2 block text-sm text-gray-300">
-            Я согласен с <a href="#" class="text-[#00ff9d] hover:underline">условиями использования</a>
-          </label>
-        </div>
         <div>
           <button
             type="submit"
@@ -83,38 +71,43 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
 
 const username = ref('');
 const email = ref('');
 const password = ref('');
-const confirmPassword = ref('');
-const agreeToTerms = ref(false);
+const error = ref('');
+const successMessage = ref('');
+const isLoading = ref(false);
 
-const handleSubmit = () => {
-  if (password.value !== confirmPassword.value) {
-    alert('Пароли не совпадают');
-    return;
-  }
-  
-  if (!agreeToTerms.value) {
-    alert('Пожалуйста, согласитесь с условиями использования');
+const handleSubmit = async () => {
+  if (!username.value || !email.value || !password.value) {
+    error.value = 'Пожалуйста, заполните все поля';
     return;
   }
 
-  // Здесь будет логика отправки данных на сервер
-  console.log('Регистрация:', { username: username.value, email: email.value, password: password.value });
-  
-  // Очистка формы после успешной регистрации
-  username.value = '';
-  email.value = '';
-  password.value = '';
-  confirmPassword.value = '';
-  agreeToTerms.value = false;
+  isLoading.value = true;
+  error.value = '';
+  successMessage.value = '';
 
-  alert('Регистрация успешна!');
+  try {
+    const result = await store.dispatch('auth/register', {
+      username: username.value,
+      email: email.value,
+      password: password.value
+    });
+    successMessage.value = result.message;
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
-
-<style scoped>
-/* Дополнительные стили, если необходимо */
-</style>

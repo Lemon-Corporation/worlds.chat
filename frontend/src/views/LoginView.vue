@@ -29,29 +29,22 @@
           />
         </div>
         <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              v-model="rememberMe"
-              type="checkbox"
-              class="h-4 w-4 text-[#00ff9d] focus:ring-[#00ff9d] border-gray-300 rounded"
-            />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-300">
-              Запомнить меня
-            </label>
-          </div>
           <div class="text-sm">
             <a href="/auth/reset-password" class="font-medium text-[#00ff9d] hover:underline">
               Забыли пароль?
             </a>
           </div>
         </div>
+        <div v-if="error" class="text-red-500 text-sm mt-2">
+          {{ error }}
+        </div>
         <div>
           <button
             type="submit"
             class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-900 bg-[#00ff9d] hover:bg-[#00cc7d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00ff9d]"
+            :disabled="isLoading"
           >
-            Войти
+            {{ isLoading ? 'Вход...' : 'Войти' }}
           </button>
         </div>
       </form>
@@ -65,22 +58,36 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
-const rememberMe = ref(false);
+const error = ref('');
+const isLoading = ref(false);
 
-const handleSubmit = () => {
-  // Здесь будет логика отправки данных на сервер
-  console.log('Вход:', { email: email.value, password: password.value, rememberMe: rememberMe.value });
-  
-  // Очистка формы после успешного входа
-  email.value = '';
-  password.value = '';
-  rememberMe.value = false;
+const handleSubmit = async () => {
+  if (!email.value || !password.value) {
+    error.value = 'Пожалуйста, заполните все поля';
+    return;
+  }
 
-  alert('Вход выполнен успешно!');
+  isLoading.value = true;
+  error.value = '';
+
+  try {
+    await store.dispatch('auth/login', { email: email.value, password: password.value });
+    router.push('/'); // Перенаправление на главную страницу после успешного входа
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

@@ -5,9 +5,17 @@ from app.api.worlds import router as worlds_router
 from app.api.channels import router as channels_router
 from app.api.members import router as members_router
 from app.api import roles, subscribers, messages, invites, user
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],  # Замените на URL вашего фронтенда
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Создаем таблицы
 Base.metadata.create_all(bind=engine)

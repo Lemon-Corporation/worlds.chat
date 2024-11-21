@@ -859,7 +859,7 @@ const newChannel = ref({
 const worlds = ref([
   {
     id: 1,
-    name: "Киберпанк 2077",
+    name: "Тестовый мир",
     icon: worldIcons[0],
     expanded: true,
     notifications: false,
@@ -869,7 +869,7 @@ const worlds = ref([
         name: "Общее",
         expanded: true,
         channels: [
-          { id: "1", name: "приветствие", type: "text", unread: false },
+          { id: "1", name: "общий чат", type: "text", unread: false },
           { id: "2", name: "объявления", type: "text", unread: false },
         ],
       },
@@ -885,50 +885,24 @@ const worlds = ref([
       },
     ],
   },
-  {
-    id: 2,
-    name: "Фэнтези Мир",
-    icon: worldIcons[1],
-    expanded: false,
-    notifications: false,
-    categories: [
-      {
-        id: 3,
-        name: "Таверна",
-        expanded: false,
-        channels: [
-          { id: "6", name: "доска-заданий", type: "text", unread: false },
-          { id: "7", name: "чат-таверны", type: "voice", unread: false },
-        ],
-      },
-    ],
-  },
 ]);
 
 const messages = ref([
   {
     id: "1",
-    user: "Алиса",
-    content: "Только что обнаружила потрясающее новое место в Найт-Сити!",
+    user: "Система",
+    content: "Добро пожаловать в мир! Напишите первое сообщение!",
     time: "12:30",
-    avatar: "https://i.pinimg.com/736x/76/c9/22/76c9223d76249e8a2f9b9fea0667ac83.jpg",
+    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
     online: true,
   },
   {
     id: "2",
-    user: "Борис",
-    content: "Звучит здорово! Можешь поделиться координатами?",
+    user: "Система",
+    content: "Попробуйте зажать и перенести в правую часть канал для разделения экрана!",
     time: "12:32",
-    avatar: "https://i.pinimg.com/736x/88/ab/62/88ab62333f5db8854790294fdff41b4e.jpg",
+    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
     online: true,
-  },
-  {
-    id: "3",
-    user: "Чарли",
-    content: "Буду там через 5 минут, подождите меня!",
-    time: "12:35",
-    avatar: "https://i.pinimg.com/736x/75/0c/8e/750c8e51c3a20bfa9579d62854da474d.jpg",
-    online: false,
   },
 ]);
 
@@ -986,7 +960,7 @@ const toggleCategory = (worldId, categoryId) => {
     }
   }
 };
-
+const draggedChannel = ref(null); 
 const startDrag = (event, channel) => {
   draggedChannel = channel;
   isDragging.value = true;
@@ -1147,7 +1121,7 @@ const createChannel = () => {
 const showParticipantsModal = ref(false);
 const invitationLink = ref('');
 const worldParticipants = ref([
-  { id: 1, name: 'Алиса', role: 'Администратор', avatar: 'https://i.pinimg.com/736x/75/0c/8e/750c8e51c3a20bfa9579d62854da474d.jpg', online: true },
+  { id: 1, name: 'Система', role: 'Администратор', avatar: 'https://i.pinimg.com/736x/75/0c/8e/750c8e51c3a20bfa9579d62854da474d.jpg', online: true },
   { id: 2, name: 'Борис', role: 'Модератор', avatar: 'https://i.pinimg.com/736x/75/0c/8e/750c8e51c3a20bfa9579d62854da474d.jpg', online: true },
   { id: 3, name: 'Чарли', role: 'Участник', avatar: 'https://i.pinimg.com/736x/75/0c/8e/750c8e51c3a20bfa9579d62854da474d.jpg', online: false },
   // Добавьте больше участников по необходимости
