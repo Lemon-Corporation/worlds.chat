@@ -6,7 +6,7 @@
     <!-- Основной контент -->
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-4xl font-bold text-[#00ff9d] mb-8">Мои Миры</h1>
-      
+
       <!-- Сетка миров -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         <div v-for="world in worlds" :key="world.id" class="flex flex-col items-center">
@@ -114,14 +114,10 @@
 <script setup>
 import { ref } from 'vue';
 import { AtSign, Bell, Plus, X } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 import NavBar from '@/components/NavBar.vue';
 
-const navigation = [
-  { name: "Обзор", href: "#", current: false },
-  { name: "Популярное", href: "#", current: false },
-  { name: "Категории", href: "#", current: false },
-  { name: "Мои Миры", href: "#", current: true },
-];
+const router = useRouter();
 
 const worldIcons = [
   "https://i.imgur.com/dlFRtHv.png",
@@ -132,25 +128,11 @@ const worldIcons = [
 const worlds = ref([
   {
     id: 1,
-    name: "Киберпанк 2077",
+    name: "Тестовый мир",
     icon: worldIcons[0],
-    description: "Погрузитесь в мир высоких технологий и низкой морали",
-    members: 1500
+    description: "Протестируйте основые функции!",
+    members: 1
   },
-  {
-    id: 2,
-    name: "Фэнтези Мир",
-    icon: worldIcons[1],
-    description: "Магия, драконы и эпические приключения ждут вас",
-    members: 2300
-  },
-  {
-    id: 3,
-    name: "Космическая Одиссея",
-    icon: worldIcons[2],
-    description: "Исследуйте бескрайние просторы космоса",
-    members: 980
-  }
 ]);
 
 const showCreateWorldModal = ref(false);
@@ -175,6 +157,7 @@ const createWorld = () => {
 
 const openWorld = (worldId) => {
   // Здесь будет логика для открытия выбранного мира
+  router.push("/app");
   console.log(`Открываем мир с ID: ${worldId}`);
 };
 </script>

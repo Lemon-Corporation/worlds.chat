@@ -50,18 +50,6 @@
             placeholder="Подтвердите пароль"
           />
         </div>
-        <div class="flex items-center">
-          <input
-            id="terms"
-            v-model="agreeToTerms"
-            type="checkbox"
-            required
-            class="h-4 w-4 text-[#00ff9d] focus:ring-[#00ff9d] border-gray-300 rounded"
-          />
-          <label for="terms" class="ml-2 block text-sm text-gray-300">
-            Я согласен с <a href="#" class="text-[#00ff9d] hover:underline">условиями использования</a>
-          </label>
-        </div>
         <div>
           <button
             type="submit"
@@ -92,42 +80,34 @@ const router = useRouter();
 const username = ref('');
 const email = ref('');
 const password = ref('');
-const confirmPassword = ref('');
-const agreeToTerms = ref(false);
+const error = ref('');
+const successMessage = ref('');
+const isLoading = ref(false);
 
 const handleSubmit = async () => {
-  console.log('Форма отправлена');
-  if (password.value !== confirmPassword.value) {
-    alert('Пароли не совпадают');
-    return;
-  }
-  
-  if (!agreeToTerms.value) {
-    alert('Пожалуйста, согласитесь с условиями использования');
+  if (!username.value || !email.value || !password.value) {
+    error.value = 'Пожалуйста, заполните все поля';
     return;
   }
 
+  isLoading.value = true;
+  error.value = '';
+  successMessage.value = '';
+
   try {
-    console.log('Отправка данных на сервер:', { username: username.value, email: email.value, password: password.value });
-    await store.dispatch('auth/register', {
+    const result = await store.dispatch('auth/register', {
       username: username.value,
       email: email.value,
       password: password.value
     });
-
-    console.log('Регистрация успешна');
-    // Очистка формы после успешной регистрации
-    username.value = '';
-    email.value = '';
-    password.value = '';
-    confirmPassword.value = '';
-    agreeToTerms.value = false;
-
-    alert('Регистрация успешна!');
-    router.push('/auth/sign-in'); // Перенаправление на страницу входа
-  } catch (error) {
-    console.error('Ошибка при регистрации:', error);
-    alert(error.message || 'Произошла ошибка при регистрации');
+    successMessage.value = result.message;
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>

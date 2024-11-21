@@ -1,114 +1,79 @@
+// store/modules/auth.js
 import axios from 'axios';
 
-const state = {
-  user: null,
-  token: null,
-};
-
-const mutations = {
-  SET_USER(state, user) {
-    state.user = user;
-  },
-  SET_TOKEN(state, token) {
-    state.token = token;
-  },
-};
-
-const actions = {
-  async register({ commit }, userData) {
-    try {
-      const response = await axios.post('/auth/register', userData);
-      console.log('Ответ от сервера при регистрации:', response.data);
-      
-      // Здесь мы не устанавливаем токен, так как сервер не возвращает его при регистрации
-      // Вместо этого мы можем установить данные пользователя
-      commit('SET_USER', {
-        id: response.data.user_id,
-        email: response.data.email,
-        username: response.data.username
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Ошибка при регистрации:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.detail || 'Ошибка регистрации');
-    }
-  },
-
-  async login({ commit }, { email, password }) {
-    try {
-      const response = await axios.post('/auth/login', { email, password });
-      commit('SET_USER', response.data);
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.detail) {
-        const errorDetails = error.response.data.detail;
-        let errorMessage = '';
-        if (Array.isArray(errorDetails)) {
-          errorMessage = errorDetails.map(err => err.msg).join(', ');
-        } else {
-          errorMessage = errorDetails;
-        }
-        throw new Error(errorMessage);
-      } else {
-        throw new Error('Произошла ошибка при входе в систему');
-      }
-    }
-  },
-  async logout({ commit }) {
-    try {
-      const token = state.token;
-      if (token) {
-        await axios.post('/auth/logout', null, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      }
-      
-      // Очищаем данные пользователя и токен
-      commit('SET_USER', null);
-      commit('SET_TOKEN', null);
-      localStorage.removeItem('refresh_token');
-      
-      // Удаляем заголовок Authorization
-      delete axios.defaults.headers.common['Authorization'];
-    } catch (error) {
-      console.error('Ошибка при выходе:', error);
-    }
-  },
-
-  async refreshToken({ commit }) {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        throw new Error('Refresh token not found');
-      }
-
-      const response = await axios.post('/auth/refresh', { refresh_token: refreshToken });
-      const { access_token } = response.data;
-
-      commit('SET_TOKEN', access_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-
-      return access_token;
-    } catch (error) {
-      console.error('Ошибка при обновлении токена:', error);
-      commit('SET_USER', null);
-      commit('SET_TOKEN', null);
-      localStorage.removeItem('refresh_token');
-      throw error;
-    }
-  },
-};
-
-const getters = {
-  isAuthenticated: (state) => !!state.token,
-  currentUser: (state) => state.user,
-};
-
-export default {
+export const auth = {
   namespaced: true,
-  state,
-  mutations,
-  actions,
-  getters,
+  state: () => ({
+    accessToken: null,
+    refreshToken: null,
+    user: null,
+  }),
+  mutations: {
+    SET_TOKENS(state, { accessToken, refreshToken }) {
+      state.accessToken = accessToken;
+      state.refreshToken = refreshToken;
+    },
+    SET_USER(state, user) {
+      state.user = user;
+    },
+    CLEAR_AUTH(state) {
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.user = null;
+    },
+  },
+  actions: {
+    async login({ commit }, { email, password }) {
+      try {
+        const response = await axios.post('/auth/login', 
+          new URLSearchParams({
+            'username': email,
+            'password': password,
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          }
+        );
+        const { access_token, refresh_token } = response.data;
+        commit('SET_TOKENS', { accessToken: access_token, refreshToken: refresh_token });
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.detail) {
+          throw new Error(error.response.data.detail);
+        } else {
+          throw new Error('Произошла ошибка при входе в систему');
+        }
+      }
+    },
+    async register({ commit }, { username, email, password }) {
+      try {
+        const response = await axios.post('/auth/register', {
+          username,
+          email,
+          password
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.detail) {
+          throw new Error(error.response.data.detail);
+        } else {
+          throw new Error('Произошла ошибка при регистрации');
+        }
+      }
+    },
+    logout({ commit }) {
+      commit('CLEAR_AUTH');
+      // Здесь можно добавить логику для удаления токенов на сервере
+    },
+  },
+  getters: {
+    isAuthenticated: (state) => !!state.accessToken,
+    getAccessToken: (state) => state.accessToken,
+    getRefreshToken: (state) => state.refreshToken,
+    getUser: (state) => state.user,
+  },
 };
+
+export default auth;

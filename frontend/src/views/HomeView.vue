@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-purple-900 via-gray-900 to-gray-950">
-    <nav class="border-b border-purple-500/20 backdrop-blur-md bg-gray-900/50 w-full">
+    <nav class="border-b border-purple-500/20 backdrop-blur-md bg-gray-900/50 w-full fixed top-0 z-50">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center">
@@ -30,9 +30,9 @@
             >
               <span class="hidden sm:inline">Войти</span>
             </button>
-            </div>
           </div>
         </div>
+      </div>
     </nav>
 
     <section class="pt-32 pb-16 md:pt-40 md:pb-20 container mx-auto px-4 relative overflow-hidden">
@@ -50,6 +50,9 @@
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <button @click="$router.push('/auth/sign-in')" class="px-6 py-3 text-lg  bg-[#00cc7d] hover:bg-[#00cc7d] text-gray-900 font-medium rounded-md transition-colors shadow-lg  transform">
             Создать свой Мир
+          </button>
+          <button @click="scrollToFeatures" class="px-6 py-3 text-lg border border-[#00ff9d] text-[#00ff9d] hover:bg-[#00ff9d]/10 font-medium rounded-md transition-colors">
+            Узнать больше
           </button>
         </div>
       </div>
@@ -206,6 +209,50 @@
         </div>
       </div>
     </section>
+
+    <footer class="bg-gray-900 py-12 border-t border-purple-500/20">
+      <div class="container mx-auto px-4">
+        <div class="grid md:grid-cols-4 gap-8">
+          <div>
+            <h3 class="text-xl font-bold text-[#00ff9d] mb-4">WORLDS</h3>
+            <p class="text-gray-400">Создавайте уникальные миры для общения, работы и творчества.</p>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-[#00ff9d] mb-4">Навигация</h4>
+            <ul class="space-y-2">
+              <li><a href="/" class="text-gray-400 hover:text-[#00ff9d] transition-colors">Главная</a></li>
+              <li><a href="/app" class="text-gray-400 hover:text-[#00ff9d] transition-colors">Запуск</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-[#00ff9d] mb-4">Ресурсы</h4>
+            <ul class="space-y-2">
+              <li><a href="lemon-corporation.com" class="text-gray-400 hover:text-[#00ff9d] transition-colors">Lemon Corporation</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-[#00ff9d] mb-4">Подписаться на новости</h4>
+            <form @submit.prevent="subscribeNewsletter" class="flex">
+              <input
+                type="email"
+                v-model="newsletterEmail"
+                placeholder="Ваш email"
+                class="bg-gray-800 text-white px-4 py-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#00ff9d]"
+              />
+              <button
+                type="submit"
+                class="bg-[#00ff9d] text-gray-900 px-4 py-2 rounded-r-md hover:bg-[#00cc7d] transition-colors"
+              >
+                Подписаться
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+          <p class="text-gray-400">&copy; 2024 WORLDS. Все права защищены.</p>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -223,6 +270,7 @@ import {
   Cpu,
   Music,
   Share2,
+  User,
 } from "lucide-vue-next";
 
 const navigation = [
@@ -230,6 +278,7 @@ const navigation = [
 ];
 
 const isVideoPlaying = ref(false);
+const newsletterEmail = ref("");
 
 const activeChannels = [
   { name: "Мозговой штурм", icon: Hash, iconColor: "text-[#00ff9d]" },
@@ -286,8 +335,56 @@ const worlds = [
     members: 10,
     channels: 12,
   },
-
+  {
+    icon: Palette,
+    iconColor: "text-[#00cc7d]",
+    name: "Творческая мастерская",
+    description:
+      "Пространство для художников, дизайнеров и креативщиков",
+    members: 500,
+    channels: 25,
+  },
+  {
+    icon: Bot,
+    iconColor: "text-[#009f62]",
+    name: "AI Лаборатория",
+    description:
+      "Исследуйте и разрабатывайте AI вместе с единомышленниками",
+    members: 250,
+    channels: 18,
+  },
 ];
+
+const testimonials = [
+  {
+    name: "Анна С.",
+    role: "Дизайнер",
+    comment: "WORLDS открыл для меня новые возможности в совместной работе над проектами. Это намного больше, чем просто платформа для общения!",
+  },
+  {
+    name: "Михаил Р.",
+    role: "Разработчик",
+    comment: "Возможность создавать собственные приложения внутри платформы - это просто фантастика. WORLDS действительно безграничен в своих возможностях.",
+  },
+  {
+    name: "Елена К.",
+    role: "Менеджер проектов",
+    comment: "Благодаря WORLDS наша команда стала работать эффективнее. Удобные инструменты для управления задачами и коммуникации в одном месте - это именно то, что нам было нужно.",
+  },
+];
+
+const scrollToFeatures = () => {
+  const featuresSection = document.getElementById('features');
+  if (featuresSection) {
+    featuresSection.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+const subscribeNewsletter = () => {
+  // Здесь будет логика подписки на рассылку
+  console.log('Подписка на рассылку:', newsletterEmail.value);
+  newsletterEmail.value = '';
+};
 </script>
 
 <style scoped>

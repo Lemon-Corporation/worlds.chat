@@ -29,17 +29,6 @@
           />
         </div>
         <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              v-model="rememberMe"
-              type="checkbox"
-              class="h-4 w-4 text-[#00ff9d] focus:ring-[#00ff9d] border-gray-300 rounded"
-            />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-300">
-              Запомнить меня
-            </label>
-          </div>
           <div class="text-sm">
             <a href="/auth/reset-password" class="font-medium text-[#00ff9d] hover:underline">
               Забыли пароль?
@@ -69,6 +58,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
@@ -79,37 +69,23 @@ const router = useRouter();
 
 const email = ref('');
 const password = ref('');
-const rememberMe = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
 const handleSubmit = async () => {
-  error.value = '';
+  if (!email.value || !password.value) {
+    error.value = 'Пожалуйста, заполните все поля';
+    return;
+  }
+
   isLoading.value = true;
+  error.value = '';
 
   try {
-    const response = await store.dispatch('auth/login', {
-      username: email.value,
-      password: password.value
-    });
-
-    console.log('Вход выполнен успешно:', response);
-
-    // Сохранение токена в localStorage, если выбрано "Запомнить меня"
-    if (rememberMe.value) {
-      localStorage.setItem('token', response.access_token);
-    }
-    router.push('/app');
-    // Очистка формы после успешного входа
-    email.value = '';
-    password.value = '';
-    rememberMe.value = false;
-
-    // Перенаправление на главную страницу или панель управления
-    router.push('/app');
+    await store.dispatch('auth/login', { email: email.value, password: password.value });
+    router.push('/'); // Перенаправление на главную страницу после успешного входа
   } catch (err) {
-    console.error('Ошибка при входе:', err);
-    error.value = err.message || 'Произошла ошибка при входе. Пожалуйста, попробуйте снова.';
+    error.value = err.message;
   } finally {
     isLoading.value = false;
   }

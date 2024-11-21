@@ -3,7 +3,7 @@ import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import HubView from "@/views/HubView.vue";
-import PopularView from "@/views/PopularView.vue";
+import AboutView from "@/views/AboutView.vue";
 import BotsView from "@/views/BotsView.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import ProfileView from "@/views/ProfileView.vue";
@@ -18,7 +18,7 @@ const routes = [
   {
     path: "/top/worlds",
     name: "Popular",
-    component: PopularView,
+    component: AboutView,
   },
   {
     path: "/messages",
