@@ -34,6 +34,37 @@ def get_current_user_info(
     )
 
 
+@router.get("/worlds", response_model=UserWorldsList)
+def get_participating_worlds(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    print(current_user)
+
+    worlds = db \
+        .query(World, WorldMember) \
+        .join(WorldMember, WorldMember.world_id == World.id) \
+        .filter(WorldMember.user_id == current_user.id) \
+    
+    world_responses = [
+        WorldResponse(
+            id=world.id,
+            name=world.name,
+            description=world.description,
+            created_at=world.created_at,
+            updated_at=world.updated_at,
+            owner_id=world.owner_id,
+            icon_url=world.icon_url,
+            is_personal_chat=world.is_personal_chat,
+        ) for world, _ in worlds
+    ]
+
+    for obj in world_responses:
+        print(obj)
+
+    return {"worlds": world_responses}
+
+
 @router.get("/{username}", response_model=UserPublicInfoResponse)
 def get_user_info_by_username(
     username: str,
@@ -56,6 +87,7 @@ def get_user_info_by_username(
         bio=user.bio
     )
 
+
 @router.patch("/", status_code=status.HTTP_200_OK)
 def update_user(
     update: UserUpdateRequest,
@@ -75,28 +107,3 @@ def update_user(
             setattr(user, attr, value)
 
     db.commit()
-
-@router.get("/worlds", response_model=UserWorldsList)
-def get_participating_worlds(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    worlds = db \
-        .query(World, WorldMember) \
-        .join(WorldMember, WorldMember.world_id == World.id) \
-        .filter(WorldMember.user_id == current_user.id) \
-    
-    world_responses = [
-        WorldResponse(
-            id=world.id,
-            name=world.name,
-            description=world.description,
-            created_at=world.created_at,
-            updated_at=world.updated_at,
-            owner_id=world.owner_id,
-            is_personal_chat=world.is_personal_chat
-        ) for world, _ in worlds
-    ]
-
-    return {"worlds": world_responses}
-

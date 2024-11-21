@@ -13,6 +13,7 @@ class World(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     owner_id = Column(Integer, ForeignKey('users.id'))
     is_personal_chat = Column(Boolean, default=False)
+    icon_url = Column(String, default="")
 
     # Используем строку вместо прямой ссылки на класс
     channels = relationship("Channel", back_populates="world", cascade="all, delete-orphan")

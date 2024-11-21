@@ -10,6 +10,7 @@ class WorldResponse(BaseModel):
     updated_at: datetime
     owner_id: int
     is_personal_chat: bool
+    icon_url: Optional[str]
 
     class Config:
         form_mode = True
@@ -18,13 +19,15 @@ class WorldResponse(BaseModel):
 class WorldCreate(BaseModel):
     name: str
     description: Optional[str]
+    icon_url: Optional[str]
     is_personal_chat: Optional[bool] = False
     partner_id: Optional[int] | None = None
 
 
 class WorldUpdate(BaseModel):
-    name: Optional[str]
-    description: Optional[str]
+    name: Optional[str] | None = None
+    description: Optional[str] | None = None
+    icon_url: Optional[str] | None = None
 
 
 class UserWorldsList(BaseModel):
