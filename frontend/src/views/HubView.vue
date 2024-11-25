@@ -726,6 +726,8 @@
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
+import { useStore } from 'vuex';
+import axios from "axios";
 import {
   Hash,
   Mic,
@@ -749,6 +751,9 @@ import {
   PhoneOff,
 } from "lucide-vue-next";
 import NavBar from "@/components/NavBar.vue";
+
+const store = useStore();
+const accessToken = store.getters['auth/getAccessToken'];
 
 // Иконки миров
 const worldIcons = [
@@ -858,7 +863,7 @@ const newChannel = ref({
 
 const worlds = ref([
   {
-    id: 1,
+    id: 0,
     name: "Тестовый мир",
     icon: worldIcons[0],
     expanded: true,
@@ -886,6 +891,30 @@ const worlds = ref([
     ],
   },
 ]);
+
+const fetchAvailableWorlds = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/user/worlds', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+    const availableWorlds = response.data.worlds.map(world => ({
+      id: world.id,
+      name: world.name,
+      icon: world.icon_url,
+      expanded: false,
+      notifications: false,
+      categories: [],  // Assuming no categories provided in the response example
+    }));
+    worlds.value = [...worlds.value, ...availableWorlds];
+  } catch (error) {
+    console.error('Failed to fetch available worlds:', error);
+  }
+};
+
+fetchAvailableWorlds();
 
 const messages = ref([
   {
@@ -1016,7 +1045,7 @@ const selectWorldTemplate = (template) => {
   newWorld.value.template = template.id;
 };
 
-const createWorld = () => {
+const createWorld = async () => {
   const newId = Math.max(...worlds.value.map(w => w.id)) + 1;
   const selectedTemplate = worldTemplates.find(t => t.id === newWorld.value.template);
 
@@ -1039,9 +1068,26 @@ const createWorld = () => {
     }))
   };
 
-  worlds.value.push(newWorldObj);
+  try {
+    const response = await axios.post('/worlds/', {
+      name: newWorld.value.name,
+      description: `World created with template ${newWorld.value.template}`,
+      icon_url: newWorld.value.icon,
+      is_personal_chat: false,
+      partner_id: 0
+    });
 
-  // Сброс формы и закрытие модального окна
+    if (response.data.id) {
+      worlds.value.push(newWorldObj);
+    } else {
+      alert('Failed to create world on backend');
+    }
+  } catch (error) {
+    console.error('Error creating world:', error);
+    alert('Failed to create world on backend');
+  }
+
+  // Reset form and close modal
   newWorld.value = { name: '', icon: worldIcons[0], template: 'community' };
   showCreateWorldModal.value = false;
 };
