@@ -32,6 +32,19 @@ def create_world(
         partner = db.query(User).filter(User.id == world.partner_id).first()
         if not partner:
             raise HTTPException(status_code=403, details="Provided partner does not exist.")
+        
+    if world.parent_world_id:
+        parent_world = db.query(World).filter(World.id == world.parent_world_id).first()
+        if not parent_world:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Parent world with id {world.parent_world_id} not found"
+            )
+        if parent_world.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=403, 
+                detail="You do not have permission to use this parent world"
+            )
 
     db_world = World(
         name=world.name, 
@@ -39,6 +52,7 @@ def create_world(
         owner_id=current_user.id,
         icon_url=world.icon_url,
         is_personal_chat=world.is_personal_chat,
+        parent_world_id=world.parent_world_id
     )
 
     db.add(db_world)
@@ -96,7 +110,13 @@ def delete_world(
     if db_world.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    db.delete(db_world)
+    stack = [db_world]
+    while stack:
+        current_world = stack.pop()
+        children = db.query(World).filter(World.parent_world_id == current_world.id).all()
+        stack.extend(children)
+        db.delete(current_world)
+
     db.commit()
     return None
 

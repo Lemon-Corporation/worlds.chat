@@ -34,7 +34,8 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         email=user.email,
         username=user.username,
-        password=hashed_password
+        password=hashed_password,
+        profile_pic_url="https://i.pinimg.com/736x/09/7d/3c/097d3cf1d036e549d1caa10ad9268dfe.jpg"
     )
     
     db.add(new_user)
@@ -45,6 +46,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         "user_id": new_user.id,
         "email": new_user.email,
         "username": new_user.username,
+        "profile_pic_url": new_user.profile_pic_url,
         "message": "User successfully registered."
     }
 
