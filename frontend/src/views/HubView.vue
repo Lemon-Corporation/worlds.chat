@@ -861,46 +861,28 @@ const newChannel = ref({
   type: 'text'
 });
 
-const worlds = ref([
-  {
-    id: 0,
-    name: "Тестовый мир",
-    icon: worldIcons[0],
-    expanded: true,
-    notifications: false,
-    categories: [
-      {
-        id: 1,
-        name: "Общее",
-        expanded: true,
-        channels: [
-          { id: "1", name: "общий чат", type: "text", unread: false },
-          { id: "2", name: "объявления", type: "text", unread: false },
-        ],
-      },
-      {
-        id: 2,
-        name: "Социальное",
-        expanded: false,
-        channels: [
-          { id: "3", name: "общий-чат", type: "text", unread: false },
-          { id: "4", name: "голосовая-комната", type: "voice", unread: false },
-          { id: "5", name: "видео-встреча", type: "video", unread: false },
-        ],
-      },
-    ],
-  },
-]);
+const worlds = ref([]);
 
 const fetchAvailableWorlds = async () => {
+  const accessToken = store.getters['auth/getAccessToken']; // Get the access token from the store
+
   try {
-    const response = await axios.get('http://localhost:8000/user/worlds', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'accept': 'application/json'
-      }
-    });
-    const availableWorlds = response.data.worlds.map(world => ({
+    const [worldsResponse, channelsResponse] = await Promise.all([
+      axios.get('http://localhost:3000/user/worlds', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'accept': 'application/json'
+        }
+      }),
+      axios.get('http://localhost:3000/channels/all?page=1&per_page=30', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'accept': 'application/json'
+        }
+      })
+    ]);
+
+    const availableWorlds = worldsResponse.data.worlds.map(world => ({
       id: world.id,
       name: world.name,
       icon: world.icon_url,
@@ -908,9 +890,21 @@ const fetchAvailableWorlds = async () => {
       notifications: false,
       categories: [],  // Assuming no categories provided in the response example
     }));
+
+    const channels = channelsResponse.data.channels;
+
+    availableWorlds.forEach(world => {
+      world.categories.push({
+        id: 0,
+        name: "default",
+        expanded: true,
+        channels: channels.filter(channel => channel.world_id === world.id)
+      });
+    });
+
     worlds.value = [...worlds.value, ...availableWorlds];
   } catch (error) {
-    console.error('Failed to fetch available worlds:', error);
+    console.error('Failed to fetch available worlds or channels:', error);
   }
 };
 
@@ -934,6 +928,44 @@ const messages = ref([
     online: true,
   },
 ]);
+
+const newMessage = ref('');
+
+// const openChannel = async (channel) => {
+//   try {
+//     const response = await axios.get(`http://localhost:3000/channels/${channel.id}`, {
+//       headers: {
+//         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+//         'accept': 'application/json'
+//       }
+//     });
+//     // Assuming channel data includes messages array
+//     messages.value = response.data.messages;
+//     activeChannels.value.push(channel);
+//   } catch (error) {
+//     console.error('Failed to open channel:', error);
+//   }
+// };
+
+const sendMessage = async (channelId) => {
+  if (!newMessage.value) return;
+  try {
+    const response = await axios.post('http://localhost:3000/messages/send', {
+      channel_id: channelId,
+      content: newMessage.value
+    }, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+    // Add the new message to the messages list
+    messages.value.push(response.data);
+    newMessage.value = '';
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
 
 const activeChannels = ref([]);
 const isDragging = ref(false);
@@ -1109,10 +1141,20 @@ const saveWorldSettings = () => {
   showWorldSettings.value = false;
 };
 
-const deleteWorld = () => {
+const deleteWorld = async () => {
   if (confirm('Вы уверены, что хотите удалить этот мир? Это действие нельзя отменить.')) {
-    worlds.value = worlds.value.filter(w => w.id !== selectedWorld.value.id);
-    showWorldSettings.value = false;
+    try {
+      await axios.delete(`http://localhost:3000/worlds/${selectedWorld.value.id}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'accept': 'application/json'
+        }
+      });
+      worlds.value = worlds.value.filter(w => w.id !== selectedWorld.value.id);
+      showWorldSettings.value = false;
+    } catch (error) {
+      console.error('Failed to delete world:', error);
+    }
   }
 };
 
@@ -1121,17 +1163,43 @@ const openCreateCategoryModal = (worldId) => {
   showCreateCategoryModal.value = true;
 };
 
-const createCategory = () => {
+const createCategory = async () => {
   const world = worlds.value.find(w => w.id === selectedWorldId.value);
-  if (world) {
-    const newId = Math.max(...world.categories.map(c => c.id)) + 1;
-    world.categories.push({
-      id: newId,
-      name: newCategory.value.name,
-      expanded: false,
-      channels: []
-    });
+
+  if (!world) {
+    alert('World not found');
+    return;
   }
+
+  const newId = Math.max(...world.categories.map(c => c.id), 0) + 1;
+
+  try {
+    // Отправляем запрос на создание категории
+    const response = await axios.post('/worlds/', {
+      name: newCategory.value.name,
+      description: '', // Оставляем пустым
+      icon_url: '', // Оставляем пустым
+      is_personal_chat: false,
+      partner_id: selectedWorldId.value, // ID родительского мира
+    });
+
+    if (response.data.id) {
+      // Если успешно создано на сервере, добавляем локально
+      world.categories.push({
+        id: newId,
+        name: newCategory.value.name,
+        expanded: false,
+        channels: [],
+      });
+    } else {
+      alert('Failed to create category on backend');
+    }
+  } catch (error) {
+    console.error('Error creating category:', error);
+    alert('Failed to create category on backend');
+  }
+
+  // Сброс формы и закрытие модального окна
   newCategory.value = { name: '' };
   showCreateCategoryModal.value = false;
 };
@@ -1142,18 +1210,34 @@ const openCreateChannelModal = (worldId, categoryId) => {
   showCreateChannelModal.value = true;
 };
 
-const createChannel = () => {
+const createChannel = async () => {
   const world = worlds.value.find(w => w.id === selectedWorldId.value);
   if (world) {
     const category = world.categories.find(c => c.id === selectedCategoryId.value);
     if (category) {
-      const newId = `${world.id}-${category.id}-${category.channels.length + 1}`;
-      category.channels.push({
-        id: newId,
-        name: newChannel.value.name,
-        type: newChannel.value.type,
-        unread: false
-      });
+      try {
+        const accessToken = store.getters['auth/getAccessToken']; // Get the access token from the store
+        const response = await axios.post('http://localhost:3000/channels/create', {
+          name: newChannel.value.name,
+          type: newChannel.value.type,
+          world_id: selectedWorldId.value
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        const newId = `${world.id}-${category.id}-${category.channels.length + 1}`;
+        category.channels.push({
+          id: newId,
+          name: response.data.name,
+          type: response.data.type,
+          unread: false
+        });
+      } catch (error) {
+        console.error('Failed to create channel:', error);
+      }
     }
   }
   newChannel.value = { name: '', type: 'text' };

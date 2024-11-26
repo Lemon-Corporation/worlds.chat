@@ -14,6 +14,8 @@ class World(Base):
     owner_id = Column(Integer, ForeignKey('users.id'))
     is_personal_chat = Column(Boolean, default=False)
     icon_url = Column(String, default="")
+    partner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
 
     # Используем строку вместо прямой ссылки на класс
     channels = relationship("Channel", back_populates="world", cascade="all, delete-orphan")

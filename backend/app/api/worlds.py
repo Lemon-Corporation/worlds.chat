@@ -21,8 +21,7 @@ def create_world(
     if not world.name:
         raise HTTPException(status_code=400, detail="World name is required.")
     
-    # If we're creating a personal chat, we need 
-    # to check if the partner exists.
+    # Если создаётся личный чат, проверяем наличие партнёра
     partner = None
 
     if world.is_personal_chat:
@@ -31,33 +30,35 @@ def create_world(
 
         partner = db.query(User).filter(User.id == world.partner_id).first()
         if not partner:
-            raise HTTPException(status_code=403, details="Provided partner does not exist.")
+            raise HTTPException(status_code=403, detail="Provided partner does not exist.")
 
+    # Добавляем partner_id в объект World
     db_world = World(
         name=world.name, 
         description=world.description,
         owner_id=current_user.id,
         icon_url=world.icon_url,
         is_personal_chat=world.is_personal_chat,
+        partner_id=world.partner_id  # Добавлено partner_id
     )
 
     db.add(db_world)
     db.commit()
     db.refresh(db_world)
 
-    # The creator of the world is also its member
+    # Создатель мира автоматически становится его участником
     membership = WorldMember(
         world_id=db_world.id,
-        user_id = current_user.id,
+        user_id=current_user.id,
         role="owner"
     )
     db.add(membership)
 
-    # And add a partner to the personal world
+    # Если есть партнёр, добавляем его в мир
     if partner:
         partner_membership = WorldMember(
             world_id=db_world.id,
-            user_id = partner.id,
+            user_id=partner.id,
             role="owner"
         )
         db.add(partner_membership)
@@ -65,6 +66,7 @@ def create_world(
     db.commit()
 
     return db_world
+
 
 
 @router.get("/{world_id}", response_model=WorldResponse)

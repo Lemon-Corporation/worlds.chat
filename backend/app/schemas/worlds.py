@@ -11,6 +11,7 @@ class WorldResponse(BaseModel):
     owner_id: int
     is_personal_chat: bool
     icon_url: Optional[str]
+    partner_id: Optional[int]
 
     class Config:
         form_mode = True
