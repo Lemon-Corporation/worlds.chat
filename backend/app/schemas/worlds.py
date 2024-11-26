@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 
 class WorldResponse(BaseModel):
-    id: int  # изменено с world_id
+    id: int
     name: str
     description: str
     created_at: datetime
@@ -22,13 +22,13 @@ class WorldCreate(BaseModel):
     description: Optional[str]
     icon_url: Optional[str]
     is_personal_chat: Optional[bool] = False
-    partner_id: Optional[int] | None = None
+    partner_id: Optional[int] = None  # Убрали | None
 
 
 class WorldUpdate(BaseModel):
-    name: Optional[str] | None = None
-    description: Optional[str] | None = None
-    icon_url: Optional[str] | None = None
+    name: Optional[str] = None  # Убрали | None
+    description: Optional[str] = None  # Убрали | None
+    icon_url: Optional[str] = None  # Убрали | None
 
 
 class UserWorldsList(BaseModel):
