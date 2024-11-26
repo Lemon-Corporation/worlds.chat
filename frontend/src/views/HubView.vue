@@ -864,47 +864,52 @@ const newChannel = ref({
 const worlds = ref([]);
 
 const fetchAvailableWorlds = async () => {
-  const accessToken = store.getters['auth/getAccessToken']; // Get the access token from the store
+  const accessToken = store.getters['auth/getAccessToken'];
 
   try {
-    const [worldsResponse, channelsResponse] = await Promise.all([
-      axios.get('http://localhost:3000/user/worlds', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'accept': 'application/json'
-        }
-      }),
-      axios.get('http://localhost:3000/channels/all?page=1&per_page=30', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'accept': 'application/json'
-        }
-      })
-    ]);
+    const response = await axios.get('http://localhost:3000/user/worlds', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
 
-    const availableWorlds = worldsResponse.data.worlds.map(world => ({
-      id: world.id,
-      name: world.name,
-      icon: world.icon_url,
-      expanded: false,
-      notifications: false,
-      categories: [],  // Assuming no categories provided in the response example
-    }));
+    const allWorlds = response.data.worlds;
 
-    const channels = channelsResponse.data.channels;
+    // Separate main worlds and category worlds
+    const mainWorlds = allWorlds.filter(world => world.partner_id === null);
+    const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
 
-    availableWorlds.forEach(world => {
-      world.categories.push({
-        id: 0,
-        name: "default",
-        expanded: true,
-        channels: channels.filter(channel => channel.world_id === world.id)
+    // Create a map to easily find parent worlds by id
+    const worldMap = new Map();
+    mainWorlds.forEach(world => {
+      worldMap.set(world.id, {
+        id: world.id,
+        name: world.name,
+        icon: world.icon_url,
+        expanded: false,
+        notifications: false,
+        categories: [],
       });
     });
 
-    worlds.value = [...worlds.value, ...availableWorlds];
+    // Assign category worlds to their parent worlds
+    categoryWorlds.forEach(category => {
+      const parentWorld = worldMap.get(category.partner_id);
+      if (parentWorld) {
+        parentWorld.categories.push({
+          id: category.id,
+          name: category.name,
+          expanded: false,
+          channels: category.channels || [],
+        });
+      }
+    });
+
+    // Convert map back to an array for worlds ref
+    worlds.value = Array.from(worldMap.values());
   } catch (error) {
-    console.error('Failed to fetch available worlds or channels:', error);
+    console.error('Failed to fetch available worlds:', error);
   }
 };
 
