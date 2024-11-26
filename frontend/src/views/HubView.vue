@@ -867,18 +867,29 @@ const fetchAvailableWorlds = async () => {
   const accessToken = store.getters['auth/getAccessToken'];
 
   try {
-    const response = await axios.get('http://localhost:3000/user/worlds', {
+    // Fetch user worlds
+    const worldsResponse = await axios.get('http://localhost:3000/user/worlds', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'
       }
     });
 
-    const allWorlds = response.data.worlds;
+    const allWorlds = worldsResponse.data.worlds;
 
     // Separate main worlds and category worlds
     const mainWorlds = allWorlds.filter(world => world.partner_id === null);
     const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
+
+    // Fetch all channels
+    const channelsResponse = await axios.get('http://localhost:3000/channels/all?page=1&per_page=40', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+
+    const allChannels = channelsResponse.data.channels;
 
     // Create a map to easily find parent worlds by id
     const worldMap = new Map();
@@ -890,6 +901,7 @@ const fetchAvailableWorlds = async () => {
         expanded: false,
         notifications: false,
         categories: [],
+        channels: [], // Initialize channels array
       });
     });
 
@@ -901,15 +913,49 @@ const fetchAvailableWorlds = async () => {
           id: category.id,
           name: category.name,
           expanded: false,
-          channels: category.channels || [],
+          channels: [], // Initialize channels array
         });
       }
+    });
+
+    // Assign channels to their respective worlds and categories
+    allChannels.forEach(channel => {
+      const world = worldMap.get(channel.world_id);
+      if (world) {
+        if (channel.type === 'world') {
+          world.channels.push(channel);
+        } else {
+          const category = world.categories.find(cat => cat.id === channel.world_id);
+          if (category) {
+            category.channels.push(channel);
+          }
+        }
+        // Log the id, name, and world_id of each channel
+      }
+    });
+
+    // Check for matches between partner_id from categories and world_id from channels
+    categoryWorlds.forEach(category => {
+      allChannels.forEach(channel => {
+        if (category.partner_id === channel.world_id) {
+          const parentWorld = worldMap.get(category.partner_id);
+          const categoryInWorld = parentWorld.categories.find(cat => cat.id === category.id);
+          if (categoryInWorld) {
+            categoryInWorld.channels.push({
+              id: channel.id,
+              name: channel.name,
+              type: channel.type,
+              unread: false // Set unread to false or based on your logic
+            });
+          }
+        }
+      });
     });
 
     // Convert map back to an array for worlds ref
     worlds.value = Array.from(worldMap.values());
   } catch (error) {
-    console.error('Failed to fetch available worlds:', error);
+    console.error('Failed to fetch available worlds and channels:', error);
   }
 };
 
@@ -1062,6 +1108,7 @@ const removeChannel = (index) => {
 };
 
 const openChannel = (channel) => {
+  console.log(activeChannels)
   if (!isChannelActive(channel.id)) {
     if (!isDragging.value) {
       // Если это обычный клик, заменяем все активные каналы на новый
@@ -1225,7 +1272,7 @@ const createChannel = async () => {
         const response = await axios.post('http://localhost:3000/channels/create', {
           name: newChannel.value.name,
           type: newChannel.value.type,
-          world_id: selectedWorldId.value
+          world_id: selectedCategoryId.value
         }, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
