@@ -26,8 +26,7 @@ class UserPrivateInfoResponse(UserPublicInfoResponse):
     email: Optional[str]
 
 class UserUpdateRequest(BaseModel):
-    email: Optional[str]| None = None
-    profile_pic_url: Optional[str] | None = None
-    banner_url: Optional[str] | None = None
-    bio: Optional[str] | None = None
-    profile_pic_url: Optional[str] | None = None
+    email: Optional[str] = None
+    profile_pic_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    bio: Optional[str] = None

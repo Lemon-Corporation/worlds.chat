@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 
 class WorldResponse(BaseModel):
-    id: int  # изменено с world_id
+    id: int
     name: str
     description: str
     created_at: datetime
@@ -12,6 +12,7 @@ class WorldResponse(BaseModel):
     is_personal_chat: bool
     icon_url: Optional[str]
     parent_world_id: Optional[int]
+    partner_id: Optional[int]
 
     class Config:
         form_mode = True
