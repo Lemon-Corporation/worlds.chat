@@ -10,6 +10,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    profile_pic_url: str
 
     class Config:
         from_attributes = True
@@ -25,7 +26,7 @@ class UserPrivateInfoResponse(UserPublicInfoResponse):
     email: Optional[str]
 
 class UserUpdateRequest(BaseModel):
-    email: Optional[str] = None  # Убрали | None
-    profile_pic_url: Optional[str] = None  # Убрали | None
-    banner_url: Optional[str] = None  # Убрали | None
-    bio: Optional[str] = None  # Убрали | None
+    email: Optional[str] = None
+    profile_pic_url: Optional[str] = None
+    banner_url: Optional[str] = None
+    bio: Optional[str] = None

@@ -11,6 +11,7 @@ class WorldResponse(BaseModel):
     owner_id: int
     is_personal_chat: bool
     icon_url: Optional[str]
+    parent_world_id: Optional[int]
     partner_id: Optional[int]
 
     class Config:
@@ -22,13 +23,15 @@ class WorldCreate(BaseModel):
     description: Optional[str]
     icon_url: Optional[str]
     is_personal_chat: Optional[bool] = False
-    partner_id: Optional[int] = None  # Убрали | None
+    partner_id: Optional[int] | None = None
+    parent_world_id: Optional[int] | None = None
 
 
 class WorldUpdate(BaseModel):
-    name: Optional[str] = None  # Убрали | None
-    description: Optional[str] = None  # Убрали | None
-    icon_url: Optional[str] = None  # Убрали | None
+    name: Optional[str] | None = None
+    description: Optional[str] | None = None
+    icon_url: Optional[str] | None = None
+    parent_world_id: Optional[int] | None = None
 
 
 class UserWorldsList(BaseModel):

@@ -17,5 +17,17 @@ class World(Base):
     partner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
 
+    parent_world_id = Column(Integer, 
+                             ForeignKey('worlds.id', ondelete="CASCADE"), 
+                             nullable=True
+                             )
+    subworlds = relationship("World", 
+                             backref="parent_world", 
+                             remote_side=[id], 
+                             cascade="all, delete-orphan", 
+                             passive_deletes=True, 
+                             single_parent=True
+                             )
+
     # Используем строку вместо прямой ссылки на класс
     channels = relationship("Channel", back_populates="world", cascade="all, delete-orphan")

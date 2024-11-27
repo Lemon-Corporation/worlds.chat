@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
+from typing import List
 
 class MessageCreate(BaseModel):
     channel_id: int
@@ -13,3 +14,9 @@ class MessageResponse(BaseModel):
 
 class MessageUpdate(BaseModel):
     content: str
+
+class PaginatedMessagesResponse(BaseModel):
+    page: int
+    per_page: int
+    total: int
+    messages: List[MessageResponse]
