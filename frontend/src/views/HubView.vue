@@ -366,6 +366,7 @@
                       <Plus class="w-5 h-5" />
                     </button>
                     <input
+                      v-model="newMessage"
                       type="text"
                       placeholder="Напишите сообщение..."
                       class="flex-1 bg-transparent border-none text-gray-300 placeholder-gray-500 focus:ring-0 focus:outline-none"
@@ -380,7 +381,7 @@
                     >
                       <Paperclip class="w-5 h-5" />
                     </button>
-                    <button  @click="sendMessage(activeChannels)"
+                    <button  @click="sendMessage()"
                       class="bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 p-2 rounded transition-colors duration-200"
                     >
                       <Send class="w-4 h-4" />
@@ -976,28 +977,25 @@ const messages = ref([
 
 const newMessage = ref('');
 
-// const openChannel = async (channel) => {
-//   try {
-//     const response = await axios.get(`http://localhost:3000/channels/${channel.id}`, {
-//       headers: {
-//         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
-//         'accept': 'application/json'
-//       }
-//     });
-//     // Assuming channel data includes messages array
-//     messages.value = response.data.messages;
-//     activeChannels.value.push(channel);
-//   } catch (error) {
-//     console.error('Failed to open channel:', error);
-//   }
-// };
 
 const sendMessage = async () => {
-  if (!newMessage.value) return;
+  // Проверяем, что сообщение не пустое и есть активный канал
+  if (!newMessage.value) {
+    console.warn('Message content is empty');
+    return;
+  }
+  if (!activeChannels.value || activeChannels.value.length === 0) {
+    console.warn('No active channel selected');
+    return;
+  }
+
   try {
-    messages.value.push("Добавлено Сообщение");
+    // Берем первый активный канал
+    const activeChannel = activeChannels.value[0];
+
+    // Отправляем сообщение на сервер
     const response = await axios.post('http://localhost:3000/messages/send', {
-      channel_id: activeChannels.id,
+      channel_id: activeChannel.id,
       content: newMessage.value
     }, {
       headers: {
@@ -1005,14 +1003,26 @@ const sendMessage = async () => {
         'accept': 'application/json'
       }
     });
-    // Add the new message to the messages list
-    messages.value.push(response.data);
-    
+
+    // Добавляем сообщение в список сообщений
+    const newMessageData = {
+      id: response.data.id,
+      user: response.data.user || 'Вы',
+      content: response.data.content,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      avatar: response.data.avatar || "https://i.imgur.com/dlFRtHv.png",
+      online: true
+    };
+
+    messages.value.push(newMessageData);
+
+    // Очистка поля ввода
     newMessage.value = '';
   } catch (error) {
     console.error('Failed to send message:', error);
   }
 };
+
 
 const activeChannels = ref([]);
 const isDragging = ref(false);
@@ -1103,7 +1113,40 @@ const removeChannel = (index) => {
   activeChannels.value.splice(index, 1);
 };
 
-const openChannel = (channel) => {
+const openChannel = async (channel) => {
+   if (!channel || !channel.id) {
+    console.warn('No channel selected');
+    return;
+  }
+
+  try {
+    // Делаем запрос на сервер для получения сообщений
+    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=10`, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+
+    // Получаем данные сообщений из ответа
+    const messagesData = response.data.messages || [];
+
+    // Форматируем сообщения и добавляем их в список
+    const formattedMessages = messagesData.map(msg => ({
+      id: msg.id,
+      user: msg.user || 'Система',
+      content: msg.content,
+      time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
+      online: msg.online || false,
+    }));
+
+    // Обновляем список сообщений
+    messages.value = [...formattedMessages];
+
+  } catch (error) {
+    console.error('Failed to fetch messages:', error);
+  }
   if (!isChannelActive(channel.id)) {
     if (!isDragging.value) {
       // Если это обычный клик, заменяем все активные каналы на новый
