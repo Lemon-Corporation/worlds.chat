@@ -45,7 +45,7 @@ def create_world(
                 status_code=403, 
                 detail="You do not have permission to use this parent world"
             )
-    # Добавляем partner_id в объект World
+    # Добавляем is_private в объект World
     db_world = World(
         name=world.name, 
         description=world.description,
@@ -54,6 +54,7 @@ def create_world(
         is_personal_chat=world.is_personal_chat,
         parent_world_id=world.parent_world_id, #Добавлен parent_world_id
         partner_id=world.partner_id,  # Добавлено partner_id
+        is_private=world.is_private,    #Добавлено is_private
     )
 
     db.add(db_world)
@@ -143,6 +144,8 @@ def update_world(
         db_world.description = update_data.description
     if update_data.icon_url is not None:
         db_world.icon_url = update_data.icon_url
+    if update_data.is_private is not None:
+        db_world.is_private = update_data.is_private
 
     db.commit()
     db.refresh(db_world)

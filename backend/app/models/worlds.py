@@ -15,7 +15,7 @@ class World(Base):
     is_personal_chat = Column(Boolean, default=False)
     icon_url = Column(String, default="")
     partner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    
+    is_private = Column(Boolean, default=False)
 
     parent_world_id = Column(Integer, 
                              ForeignKey('worlds.id', ondelete="CASCADE"), 
