@@ -31,7 +31,8 @@ def create_channel(
     if not channel.name:
         raise HTTPException(status_code=400, detail="Channel name is required.")
     
-    if channel.type not in ChannelType.__members__.values():
+    print(channel.type)
+    if channel.type not in ChannelType:
         raise HTTPException(status_code=400, detail="Invalid channel type.")
     
     

@@ -57,6 +57,7 @@ def get_participating_worlds(
             icon_url=world.icon_url,
             is_personal_chat=world.is_personal_chat,
             partner_id=world.partner_id,
+            parent_world_id=world.parent_world_id,
         ) for world, _ in worlds
     ]
 

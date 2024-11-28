@@ -92,7 +92,7 @@
                       class="w-3 h-3 text-gray-400"
                     />
                     <Mic
-                      v-else-if="channel.type === 'voice'"
+                      v-else-if="channel.type === 'VOICE'"
                       class="w-3 h-3 text-gray-400"
                     />
                     <Video
@@ -226,7 +226,7 @@
                           class="w-3 h-3 text-gray-400"
                         />
                         <Mic
-                          v-else-if="channel.type === 'voice'"
+                          v-else-if="channel.type === 'VOICE'"
                           class="w-3 h-3 text-gray-400"
                         />
                         <Video
@@ -278,7 +278,7 @@
                 >
                   <div class="flex items-center gap-2 text-[#00ff9d]">
                     <Hash v-if="channel.type === 'text'" class="w-5 h-5" />
-                    <Mic v-else-if="channel.type === 'voice'" class="w-5 h-5" />
+                    <Mic v-else-if="channel.type === 'VOICE'" class="w-5 h-5" />
                     <Video v-else-if="channel.type === 'video'" class="w-5 h-5" />
                     <h1 class="font-semibold">{{ channel.name }}</h1>
                   </div>
@@ -324,14 +324,14 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
+                  <div v-else-if="channel.type === 'VOICE' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
                     <div v-if="channel.connected" class="text-center">
-                      <component :is="channel.type === 'voice' ? Mic : Video" class="w-16 h-16 text-[#00ff9d] mb-4" />
-                      <p class="text-[#00ff9d] text-xl font-bold mb-2">Вы подключены к {{ channel.type === 'voice' ? 'голосовому' : 'видео' }} каналу</p>
+                      <component :is="channel.type === 'VOICE' ? Mic : Video" class="w-16 h-16 text-[#00ff9d] mb-4" />
+                      <p class="text-[#00ff9d] text-xl font-bold mb-2">Вы подключены к {{ channel.type === 'VOICE' ? 'голосовому' : 'видео' }} каналу</p>
                       <p class="text-gray-400 mb-4">{{ channel.name }}</p>
                       <div class="flex space-x-4">
                         <button class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors duration-200">
-                          <MicOff v-if="channel.type === 'voice'" class="w-6 h-6" />
+                          <MicOff v-if="channel.type === 'VOICE'" class="w-6 h-6" />
                           <VideoOff v-else class="w-6 h-6" />
                         </button>
                         <button @click="disconnectFromChannel(channel)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200">
@@ -340,13 +340,13 @@
                       </div>
                     </div>
                     <div v-else class="text-gray-400 text-center">
-                      <component :is="channel.type === 'voice' ? Mic : Video" class="w-12 h-12 mx-auto mb-4 text-[#00ff9d]" />
-                      <p>{{ channel.type === 'voice' ? 'Голосовой' : 'Видео' }} канал</p>
+                      <component :is="channel.type === 'VOICE' ? Mic : Video" class="w-12 h-12 mx-auto mb-4 text-[#00ff9d]" />
+                      <p>{{ channel.type === 'VOICE' ? 'Голосовой' : 'Видео' }} канал</p>
                       <button
                         @click="connectToChannel(channel)"
                         class="mt-4 bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 font-medium py-2 px-4 rounded-md transition-colors duration-200"
                       >
-                        Присоединиться к {{ channel.type === 'voice' ? 'голосовому' : 'видео' }} чату
+                        Присоединиться к {{ channel.type === 'VOICE' ? 'голосовому' : 'видео' }} чату
                       </button>
                     </div>
                   </div>
@@ -380,7 +380,7 @@
                     >
                       <Paperclip class="w-5 h-5" />
                     </button>
-                    <button
+                    <button  @click="sendMessage(activeChannels)"
                       class="bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 p-2 rounded transition-colors duration-200"
                     >
                       <Send class="w-4 h-4" />
@@ -789,8 +789,8 @@ const worldTemplates = [
       {
         name: 'Голосовые каналы',
         channels: [
-          { name: 'Общий голосовой', type: 'voice' },
-          { name: 'Музыка', type: 'voice' },
+          { name: 'Общий голосовой', type: 'VOICE' },
+          { name: 'Музыка', type: 'VOICE' },
         ]
       }
     ]
@@ -819,7 +819,7 @@ const worldTemplates = [
       {
         name: 'Встречи',
         channels: [
-          { name: 'Ежедневный созвон', type: 'voice' },
+          { name: 'Ежедневный созвон', type: 'VOICE' },
           { name: 'Командная встреча', type: 'video' },
         ]
       }
@@ -830,7 +830,7 @@ const worldTemplates = [
 // Типы каналов
 const channelTypes = [
   { id: 'text', name: 'Текст', icon: MessageSquare },
-  { id: 'voice', name: 'Голос', icon: Mic },
+  { id: 'VOICE', name: 'Голос', icon: Mic },
   { id: 'video', name: 'Видео', icon: Video },
 ];
 
@@ -876,8 +876,9 @@ const fetchAvailableWorlds = async () => {
     });
 
     const allWorlds = worldsResponse.data.worlds;
+   
 
-    // Separate main worlds and category worlds
+    // Ensure unique IDs and correct categorization
     const mainWorlds = allWorlds.filter(world => world.partner_id === null);
     const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
 
@@ -920,37 +921,29 @@ const fetchAvailableWorlds = async () => {
 
     // Assign channels to their respective worlds and categories
     allChannels.forEach(channel => {
-      const world = worldMap.get(channel.world_id);
-      if (world) {
-        if (channel.type === 'world') {
-          world.channels.push(channel);
-        } else {
-          const category = world.categories.find(cat => cat.id === channel.world_id);
-          if (category) {
-            category.channels.push(channel);
-          }
-        }
-        // Log the id, name, and world_id of each channel
-      }
-    });
+  // Найти мир, к которому принадлежит категория
+  let categoryFound = false;
 
-    // Check for matches between partner_id from categories and world_id from channels
-    categoryWorlds.forEach(category => {
-      allChannels.forEach(channel => {
-        if (category.partner_id === channel.world_id) {
-          const parentWorld = worldMap.get(category.partner_id);
-          const categoryInWorld = parentWorld.categories.find(cat => cat.id === category.id);
-          if (categoryInWorld) {
-            categoryInWorld.channels.push({
-              id: channel.id,
-              name: channel.name,
-              type: channel.type,
-              unread: false // Set unread to false or based on your logic
-            });
-          }
-        }
+  worldMap.forEach(world => {
+    const category = world.categories.find(cat => cat.id === channel.world_id);
+    if (category) {
+      // Добавить канал в категорию
+      category.channels.push({
+        id: channel.id,
+        name: channel.name,
+        type: channel.type,
+        unread: false
       });
-    });
+      categoryFound = true;
+    }
+  });
+
+  if (!categoryFound) {
+    // console.warn(`Category not found for channel ID ${channel.id}, world_id ${channel.world_id}`);
+  }
+});
+
+
 
     // Convert map back to an array for worlds ref
     worlds.value = Array.from(worldMap.values());
@@ -958,6 +951,7 @@ const fetchAvailableWorlds = async () => {
     console.error('Failed to fetch available worlds and channels:', error);
   }
 };
+
 
 fetchAvailableWorlds();
 
@@ -998,11 +992,12 @@ const newMessage = ref('');
 //   }
 // };
 
-const sendMessage = async (channelId) => {
+const sendMessage = async () => {
   if (!newMessage.value) return;
   try {
+    messages.value.push("Добавлено Сообщение");
     const response = await axios.post('http://localhost:3000/messages/send', {
-      channel_id: channelId,
+      channel_id: activeChannels.id,
       content: newMessage.value
     }, {
       headers: {
@@ -1012,6 +1007,7 @@ const sendMessage = async (channelId) => {
     });
     // Add the new message to the messages list
     messages.value.push(response.data);
+    
     newMessage.value = '';
   } catch (error) {
     console.error('Failed to send message:', error);
@@ -1108,7 +1104,6 @@ const removeChannel = (index) => {
 };
 
 const openChannel = (channel) => {
-  console.log(activeChannels)
   if (!isChannelActive(channel.id)) {
     if (!isDragging.value) {
       // Если это обычный клик, заменяем все активные каналы на новый
@@ -1158,7 +1153,7 @@ const createWorld = async () => {
       description: `World created with template ${newWorld.value.template}`,
       icon_url: newWorld.value.icon,
       is_personal_chat: false,
-      partner_id: 0
+      partner_id: null,
     });
 
     if (response.data.id) {
@@ -1268,7 +1263,7 @@ const createChannel = async () => {
     const category = world.categories.find(c => c.id === selectedCategoryId.value);
     if (category) {
       try {
-        const accessToken = store.getters['auth/getAccessToken']; // Get the access token from the store
+        const accessToken = store.getters['auth/getAccessToken'];
         const response = await axios.post('http://localhost:3000/channels/create', {
           name: newChannel.value.name,
           type: newChannel.value.type,
@@ -1279,7 +1274,6 @@ const createChannel = async () => {
             'Accept': 'application/json'
           }
         });
-
         const newId = `${world.id}-${category.id}-${category.channels.length + 1}`;
         category.channels.push({
           id: newId,

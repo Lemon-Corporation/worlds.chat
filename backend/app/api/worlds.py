@@ -52,8 +52,8 @@ def create_world(
         owner_id=current_user.id,
         icon_url=world.icon_url,
         is_personal_chat=world.is_personal_chat,
-        parent_world_id=world.parent_world_id #Добавлен parent_world_id
-        partner_id=world.partner_id  # Добавлено partner_id
+        parent_world_id=world.parent_world_id, #Добавлен parent_world_id
+        partner_id=world.partner_id,  # Добавлено partner_id
     )
 
     db.add(db_world)

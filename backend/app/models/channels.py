@@ -5,10 +5,10 @@ from app.db.database import Base
 import enum
 
 class ChannelType(enum.Enum):
-    TEXT = "text"
-    VOICE = "voice"
-    VIDEO = "video"
-    TODO = "todo"
+    text = "text"
+    voice = "voice"
+    video = "video"
+    todo = "todo"
 
 class Channel(Base):
     __tablename__ = "channels"

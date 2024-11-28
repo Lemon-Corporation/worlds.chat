@@ -113,11 +113,14 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+import axios from 'axios';
 import { AtSign, Bell, Plus, X } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 import NavBar from '@/components/NavBar.vue';
 
 const router = useRouter();
+const store = useStore();
 
 const worldIcons = [
   "https://i.imgur.com/dlFRtHv.png",
@@ -125,15 +128,60 @@ const worldIcons = [
   "https://i.imgur.com/w2LCHjF.png"
 ];
 
-const worlds = ref([
-  {
-    id: 1,
-    name: "Тестовый мир",
-    icon: worldIcons[0],
-    description: "Протестируйте основые функции!",
-    members: 1
-  },
-]);
+const worlds = ref([]);
+
+const fetchAvailableWorlds = async () => {
+  const accessToken = store.getters['auth/getAccessToken'];
+
+  try {
+    // Fetch user worlds
+    const worldsResponse = await axios.get('http://localhost:3000/user/worlds', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+
+    const allWorlds = worldsResponse.data.worlds;
+   
+
+    // Ensure unique IDs and correct categorization
+    const mainWorlds = allWorlds.filter(world => world.partner_id === null);
+    const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
+
+    // Fetch all channels
+    const channelsResponse = await axios.get('http://localhost:3000/channels/all?page=1&per_page=40', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+
+    const allChannels = channelsResponse.data.channels;
+
+    // Create a map to easily find parent worlds by id
+    const worldMap = new Map();
+    mainWorlds.forEach(world => {
+      worldMap.set(world.id, {
+        id: world.id,
+        name: world.name,
+        icon: world.icon_url,
+        expanded: false,
+        notifications: false,
+        categories: [],
+        channels: [], // Initialize channels array
+      });
+    });
+
+    // Convert map back to an array for worlds ref
+    worlds.value = Array.from(worldMap.values());
+  } catch (error) {
+    console.error('Failed to fetch available worlds and channels:', error);
+  }
+};
+
+
+fetchAvailableWorlds();
 
 const showCreateWorldModal = ref(false);
 const newWorld = ref({
