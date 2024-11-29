@@ -108,7 +108,7 @@ const editForm = ref({
 
 const getProfile = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/user/me', {
+    const response = await axios.get('http://localhost:8000/user/me', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -134,7 +134,7 @@ const closeEditProfileModal = () => {
 
 const updateProfile = async () => {
   try {
-    const response = await axios.patch('http://localhost:3000/user/', editForm.value, {
+    const response = await axios.patch('http://localhost:8000/user/', editForm.value, {
       headers: {
         Authorization: `Bearer ${accessToken.value}`,
       },

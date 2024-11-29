@@ -135,7 +135,7 @@ const fetchAvailableWorlds = async () => {
 
   try {
     // Fetch user worlds
-    const worldsResponse = await axios.get('http://localhost:3000/user/worlds', {
+    const worldsResponse = await axios.get('http://localhost:8000/user/worlds', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'
@@ -150,7 +150,7 @@ const fetchAvailableWorlds = async () => {
     const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
 
     // Fetch all channels
-    const channelsResponse = await axios.get('http://localhost:3000/channels/all?page=1&per_page=40', {
+    const channelsResponse = await axios.get('http://localhost:8000/channels/all?page=1&per_page=40', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'

@@ -748,9 +748,6 @@ const accessToken = store.getters['auth/getAccessToken'];
 
 const connectToJitsi = async (channel, room, password) => {
   try {
-    console.log("jitsi init...");
-    console.log(room)
-    console.log(password)
     const domain = "localhost:7000";
     const options = {
         roomName: room,
@@ -903,7 +900,7 @@ const newChannel = ref({
 const getUserData = async (user_id) => {
   try {
     // Fetch user worlds
-    const userData = await axios.get(`http://localhost:3000/user/${user_id}`, {
+    const userData = await axios.get(`http://localhost:8000/user/${user_id}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'
@@ -922,7 +919,7 @@ const fetchAvailableWorlds = async () => {
 
   try {
     // Fetch user worlds
-    const worldsResponse = await axios.get('http://localhost:3000/user/worlds', {
+    const worldsResponse = await axios.get('http://localhost:8000/user/worlds', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'
@@ -937,7 +934,7 @@ const fetchAvailableWorlds = async () => {
     const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
 
     // Fetch all channels
-    const channelsResponse = await axios.get('http://localhost:3000/channels/all?page=1&per_page=40', {
+    const channelsResponse = await axios.get('http://localhost:8000/channels/all?page=1&per_page=40', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'accept': 'application/json'
@@ -1021,13 +1018,13 @@ const sendMessage = async (channel, newMessage) => {
 
   try {
     // Отправляем сообщение на сервер
-    const userData = await axios.get('http://localhost:3000/user/me', {
+    const userData = await axios.get('http://localhost:8000/user/me', {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
       }
     });
-    const response = await axios.post('http://localhost:3000/messages/send', {
+    const response = await axios.post('http://localhost:8000/messages/send', {
       channel_id: channel.id,
       content: newMessage,
       user_id: userData.data.id
@@ -1128,7 +1125,7 @@ const getMessages = async (channel) => {
   try {
     // Initialize the messages array for the channel
     messages.value[channel.id] = [];
-    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
+    const response = await axios.get(`http://localhost:8000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
@@ -1208,7 +1205,7 @@ const openChannel = async (channel) => {
   try {
     // Initialize the messages array for the channel
     messages.value[channel.id] = [];
-    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
+    const response = await axios.get(`http://localhost:8000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
@@ -1320,7 +1317,7 @@ const saveWorldSettings = () => {
 const deleteWorld = async () => {
   if (confirm('Вы уверены, что хотите удалить этот мир? Это действие нельзя отменить.')) {
     try {
-      await axios.delete(`http://localhost:3000/worlds/${selectedWorld.value.id}`, {
+      await axios.delete(`http://localhost:8000/worlds/${selectedWorld.value.id}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'accept': 'application/json'
@@ -1398,7 +1395,7 @@ const createChannel = async () => {
       )
       try {
         const accessToken = store.getters['auth/getAccessToken'];
-        const response = await axios.post('http://localhost:3000/channels/create', {
+        const response = await axios.post('http://localhost:8000/channels/create', {
           name: newChannel.value.name,
           type: newChannel.value.type,
           world_id: selectedCategoryId.value
@@ -1455,7 +1452,7 @@ const showParticipants = () => {
 // Функция для подключения ёосовому или видео каналу
 const connectToChannel = async (channel) => {
   const roomResponse = await axios.post(
-    `http://localhost:3000/voice/${channel.id}/join`, {}, {
+    `http://localhost:8000/voice/${channel.id}/join`, {}, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
@@ -1478,7 +1475,7 @@ const disconnectFromChannel = async (channel) => {
   })
 
   const roomResponse = await axios.post(
-    `http://localhost:3000/voice/${channel.id}/leave`, {}, {
+    `http://localhost:8000/voice/${channel.id}/leave`, {}, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
