@@ -96,7 +96,8 @@ def get_messages(
             message_id=message.id,
             channel_id=message.channel_id,
             content=message.content,
-            timestamp=message.created_at
+            timestamp=message.created_at,
+            user_id=message.user_id,
         )
         for message in messages
     ]

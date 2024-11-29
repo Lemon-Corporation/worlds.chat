@@ -92,7 +92,7 @@
                       class="w-3 h-3 text-gray-400"
                     />
                     <Mic
-                      v-else-if="channel.type === 'VOICE'"
+                      v-else-if="channel.type === 'voice'"
                       class="w-3 h-3 text-gray-400"
                     />
                     <Video
@@ -226,7 +226,7 @@
                           class="w-3 h-3 text-gray-400"
                         />
                         <Mic
-                          v-else-if="channel.type === 'VOICE'"
+                          v-else-if="channel.type === 'voice'"
                           class="w-3 h-3 text-gray-400"
                         />
                         <Video
@@ -278,7 +278,7 @@
                 >
                   <div class="flex items-center gap-2 text-[#00ff9d]">
                     <Hash v-if="channel.type === 'text'" class="w-5 h-5" />
-                    <Mic v-else-if="channel.type === 'VOICE'" class="w-5 h-5" />
+                    <Mic v-else-if="channel.type === 'voice'" class="w-5 h-5" />
                     <Video v-else-if="channel.type === 'video'" class="w-5 h-5" />
                     <h1 class="font-semibold">{{ channel.name }}</h1>
                   </div>
@@ -292,6 +292,7 @@
 
                 <!-- Сообщения или содержимое канала -->
                 <div class="flex-1 p-4 overflow-y-auto space-y-4">
+
                   <div v-if="channel.type === 'text'">
                     <div
                       v-for="message in messages[channel.id]"
@@ -324,31 +325,8 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="channel.type === 'VOICE' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
-                    <div v-if="channel.connected" class="text-center">
-                      <component :is="channel.type === 'VOICE' ? Mic : Video" class="w-16 h-16 text-[#00ff9d] mb-4" />
-                      <p class="text-[#00ff9d] text-xl font-bold mb-2">Вы подключены к {{ channel.type === 'VOICE' ? 'голосовому' : 'видео' }} каналу</p>
-                      <p class="text-gray-400 mb-4">{{ channel.name }}</p>
-                      <div class="flex space-x-4">
-                        <button class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors duration-200">
-                          <MicOff v-if="channel.type === 'VOICE'" class="w-6 h-6" />
-                          <VideoOff v-else class="w-6 h-6" />
-                        </button>
-                        <button @click="disconnectFromChannel(channel)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200">
-                          <PhoneOff class="w-6 h-6" />
-                        </button>
-                      </div>
-                    </div>
-                    <div v-else class="text-gray-400 text-center">
-                      <component :is="channel.type === 'VOICE' ? Mic : Video" class="w-12 h-12 mx-auto mb-4 text-[#00ff9d]" />
-                      <p>{{ channel.type === 'VOICE' ? 'Голосовой' : 'Видео' }} канал</p>
-                      <button
-                        @click="connectToChannel(channel)"
-                        class="mt-4 bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                      >
-                        Присоединиться к {{ channel.type === 'VOICE' ? 'голосовому' : 'видео' }} чату
-                      </button>
-                    </div>
+                  <div v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">  
+                    <div id="jitsi-container" style="width: 100%; height: 700px;"></div>
                   </div>
                 </div>
 
@@ -756,6 +734,54 @@ import NavBar from "@/components/NavBar.vue";
 const store = useStore();
 const accessToken = store.getters['auth/getAccessToken'];
 
+// jitsi -----------------------------------
+
+const initJitsi = async () => {
+try {
+  console.log("jitsi init...");
+  const domain = "localhost:7000";
+  const options = {
+      roomName: "362dc905-96eb-43e9-94b9-40d7726d6ff3",
+      width: "100%",
+      height: "100%",
+      parentNode: document.getElementById('jitsi-container'),
+      configOverwrite: {
+          startWithAudioMuted: true,
+          startWithVideoMuted: true,
+      },
+      userInfo: {
+          displayName: "Timothy" // Display name
+      }
+  };
+
+  // Create a new Jitsi Meet API instance
+  const api = new JitsiMeetExternalAPI(domain, options);
+
+  // Handle events (optional)
+  api.addEventListener('videoConferenceJoined', () => {
+      // prompt('Conference joined successfully!');
+  });
+
+  api.addEventListener('videoConferenceLeft', () => {
+      // prompt('Conference left!');
+  });
+
+  api.addEventListener('participantRoleChanged', function(event) {
+      if (event.role === "moderator") {
+          api.executeCommand('password', "hello");
+      }
+  });
+
+  api.addEventListener('passwordRequired', () => {
+      api.executeCommand('password', "hello")
+  })
+} catch (error) {
+  console.warn(error);
+}
+};
+
+// -------------------------------------------------------
+
 // Иконки миров
 const worldIcons = [
   "https://i.imgur.com/dlFRtHv.png",
@@ -790,8 +816,8 @@ const worldTemplates = [
       {
         name: 'Голосовые каналы',
         channels: [
-          { name: 'Общий голосовой', type: 'VOICE' },
-          { name: 'Музыка', type: 'VOICE' },
+          { name: 'Общий голосовой', type: 'voice' },
+          { name: 'Музыка', type: 'voice' },
         ]
       }
     ]
@@ -820,7 +846,7 @@ const worldTemplates = [
       {
         name: 'Встречи',
         channels: [
-          { name: 'Ежедневный созвон', type: 'VOICE' },
+          { name: 'Ежедневный созвон', type: 'voice' },
           { name: 'Командная встреча', type: 'video' },
         ]
       }
@@ -831,7 +857,7 @@ const worldTemplates = [
 // Типы каналов
 const channelTypes = [
   { id: 'text', name: 'Текст', icon: MessageSquare },
-  { id: 'VOICE', name: 'Голос', icon: Mic },
+  { id: 'voice', name: 'Голос', icon: Mic },
   { id: 'video', name: 'Видео', icon: Video },
 ];
 
@@ -1079,7 +1105,7 @@ const getMessages = async (channel) => {
     // Format and add messages to the list
     const formattedMessages = messagesData.map(msg => ({
       id: msg.id,
-      user: msg.user || 'Вы',
+      user: msg.user_id|| 'Вы',
       content: msg.content,
       time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
@@ -1137,6 +1163,10 @@ const openChannel = async (channel) => {
   if (!channel || !channel.id) {
     console.warn('No channel selected');
     return;
+  }
+
+  if (channel.type == "video" || channel.type == "voice") {
+    initJitsi();
   }
 
   try {
@@ -1323,6 +1353,11 @@ const createChannel = async () => {
   if (world) {
     const category = world.categories.find(c => c.id === selectedCategoryId.value);
     if (category) {
+      console.log("create channel info:", 
+          newChannel.value.name,
+          newChannel.value.type,
+          selectedCategoryId.value,
+      )
       try {
         const accessToken = store.getters['auth/getAccessToken'];
         const response = await axios.post('http://localhost:3000/channels/create', {
@@ -1379,8 +1414,11 @@ const showParticipants = () => {
   showParticipantsModal.value = true;
 };
 
-// Функция для подключения к голосовому или видео каналу
+// Функция для подключения ёосовому или видео каналу
 const connectToChannel = (channel) => {
+  if (channel.type == "video") {
+    
+  }
   channel.connected = true;
   // Здесь вы обычно реализуете фактическую логику подключения
 };

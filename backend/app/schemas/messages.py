@@ -9,6 +9,7 @@ class MessageCreate(BaseModel):
 class MessageResponse(BaseModel):
     message_id: int
     channel_id: int
+    user_id: int
     content: str
     timestamp: datetime
 
