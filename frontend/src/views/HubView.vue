@@ -746,7 +746,7 @@ const accessToken = store.getters['auth/getAccessToken'];
 
 // jitsi -----------------------------------
 
-const connectToJitsi = async (channel, room, password) => {
+const connectToJitsi = async (channel, username, room, password) => {
   try {
     const domain = "localhost:7000";
     const options = {
@@ -759,7 +759,7 @@ const connectToJitsi = async (channel, room, password) => {
             startWithVideoMuted: true,
         },
         userInfo: {
-            displayName: "Timothy" // Display name
+            displayName: username
         }
     };
 
@@ -1447,21 +1447,34 @@ const showParticipants = () => {
   showParticipantsModal.value = true;
 };
 
+const getRoomConnection = async (channel_id) => {
+  try {
+    const roomResponse = await axios.post(`http://localhost:8000/voice/${channel_id}/join`,
+      {}, 
+      {
+        headers: {
+          'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+          'accept': 'application/json'
+        }
+      }
+    );
+    return roomResponse.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 // Функция для подключения ёосовому или видео каналу
 const connectToChannel = async (channel) => {
-  const roomResponse = await axios.post(
-    `http://localhost:8000/voice/${channel.id}/join`, {}, {
-      headers: {
-        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
-        'accept': 'application/json'
-    }
-  });
+  const roomData = await getRoomConnection(channel.id)
+  const userData = await getUserData()
 
   channel.connected = true;
   connectToJitsi(
-    channel, 
-    roomResponse.data.room_id, 
-    roomResponse.data.password
+    channel,
+    userData.username,
+    roomData.room_id, 
+    roomData.password
   );
 };
 
