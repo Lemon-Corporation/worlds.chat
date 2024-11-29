@@ -31,11 +31,6 @@ def create_channel(
     if not channel.name:
         raise HTTPException(status_code=400, detail="Channel name is required.")
     
-    print(channel.type)
-    if channel.type not in ChannelType:
-        raise HTTPException(status_code=400, detail="Invalid channel type.")
-    
-    
     new_channel = crud.create_channel(db, channel)
     return new_channel
 
