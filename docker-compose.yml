@@ -1,4 +1,5 @@
-version: "3.9"
+include:
+  - voicerooms/docker-compose.yml
 
 services:
   backend:
@@ -15,7 +16,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "8080:8080"
+      - "9000:8080"
     networks:
       - app-network
 
