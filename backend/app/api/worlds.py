@@ -77,10 +77,23 @@ def create_world(
         )
         db.add(partner_membership)
 
+    # Если этот мир является подмиром, нужно добавить всех существующих
+    # членов мира в этот новый подмир.
+    print(world.parent_world_id)
+    if world.parent_world_id:
+        print("Copying over users from parent world...")
+        for member in db.query(WorldMember).filter(WorldMember.world_id == world.parent_world_id):
+            if member.user_id != current_user.id:
+                membership = WorldMember(
+                    world_id=db_world.id,
+                    user_id=member.user_id,
+                    role="member"
+                )
+                db.add(membership)
+
     db.commit()
 
     return db_world
-
 
 
 @router.get("/{world_id}", response_model=WorldResponse)

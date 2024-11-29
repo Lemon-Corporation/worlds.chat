@@ -930,8 +930,8 @@ const fetchAvailableWorlds = async () => {
    
 
     // Ensure unique IDs and correct categorization
-    const mainWorlds = allWorlds.filter(world => world.partner_id === null);
-    const categoryWorlds = allWorlds.filter(world => world.partner_id !== null);
+    const mainWorlds = allWorlds.filter(world => world.parent_world_id === null);
+    const categoryWorlds = allWorlds.filter(world => world.parent_world_id !== null);
 
     // Fetch all channels
     const channelsResponse = await axios.get('http://localhost:8000/channels/all?page=1&per_page=40', {
@@ -959,7 +959,7 @@ const fetchAvailableWorlds = async () => {
 
     // Assign category worlds to their parent worlds
     categoryWorlds.forEach(category => {
-      const parentWorld = worldMap.get(category.partner_id);
+      const parentWorld = worldMap.get(category.parent_world_id);
       if (parentWorld) {
         parentWorld.categories.push({
           id: category.id,
@@ -993,8 +993,6 @@ const fetchAvailableWorlds = async () => {
     // console.warn(`Category not found for channel ID ${channel.id}, world_id ${channel.world_id}`);
   }
 });
-
-
 
     // Convert map back to an array for worlds ref
     worlds.value = Array.from(worldMap.values());
@@ -1353,7 +1351,7 @@ const createCategory = async () => {
       description: '', // Оставляем пустым
       icon_url: '', // Оставляем пустым
       is_personal_chat: false,
-      partner_id: selectedWorldId.value, // ID родительского мира
+      parent_world_id: selectedWorldId.value, // ID родительского мира
     });
 
     if (response.data.id) {
