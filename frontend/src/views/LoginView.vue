@@ -83,7 +83,7 @@ const handleSubmit = async () => {
 
   try {
     await store.dispatch('auth/login', { email: email.value, password: password.value });
-    router.push('/'); // Перенаправление на главную страницу после успешного входа
+    router.push('/app'); // Перенаправление на главную страницу после успешного входа
   } catch (err) {
     error.value = err.message;
   } finally {

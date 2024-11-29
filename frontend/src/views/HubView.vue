@@ -294,7 +294,7 @@
                 <div class="flex-1 p-4 overflow-y-auto space-y-4">
                   <div v-if="channel.type === 'text'">
                     <div
-                      v-for="message in messages"
+                      v-for="message in messages[channel.id]"
                       :key="message.id"
                       class="group flex items-start gap-3 p-2 rounded-lg hover:bg-purple-500/10 transition-colors duration-200"
                     >
@@ -366,7 +366,7 @@
                       <Plus class="w-5 h-5" />
                     </button>
                     <input
-                      v-model="newMessage"
+                      v-model="channel.inputValue"
                       type="text"
                       placeholder="Напишите сообщение..."
                       class="flex-1 bg-transparent border-none text-gray-300 placeholder-gray-500 focus:ring-0 focus:outline-none"
@@ -381,7 +381,7 @@
                     >
                       <Paperclip class="w-5 h-5" />
                     </button>
-                    <button  @click="sendMessage()"
+                    <button  @click="sendMessage(channel, channel.inputValue)"
                       class="bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 p-2 rounded transition-colors duration-200"
                     >
                       <Send class="w-4 h-4" />
@@ -956,47 +956,21 @@ const fetchAvailableWorlds = async () => {
 
 fetchAvailableWorlds();
 
-const messages = ref([
-  {
-    id: "1",
-    user: "Система",
-    content: "Добро пожаловать в мир! Напишите первое сообщение!",
-    time: "12:30",
-    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
-    online: true,
-  },
-  {
-    id: "2",
-    user: "Система",
-    content: "Попробуйте зажать и перенести в правую часть канал для разделения экрана!",
-    time: "12:32",
-    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
-    online: true,
-  },
-]);
+const messages = ref([]);
 
-const newMessage = ref('');
-
-
-const sendMessage = async () => {
+const sendMessage = async (channel, newMessage) => {
   // Проверяем, что сообщение не пустое и есть активный канал
-  if (!newMessage.value) {
+  if (!newMessage) {
     console.warn('Message content is empty');
-    return;
-  }
-  if (!activeChannels.value || activeChannels.value.length === 0) {
-    console.warn('No active channel selected');
+
     return;
   }
 
   try {
-    // Берем первый активный канал
-    const activeChannel = activeChannels.value[0];
-
     // Отправляем сообщение на сервер
     const response = await axios.post('http://localhost:3000/messages/send', {
-      channel_id: activeChannel.id,
-      content: newMessage.value
+      channel_id: channel.id,
+      content: newMessage
     }, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
@@ -1014,10 +988,14 @@ const sendMessage = async () => {
       online: true
     };
 
-    messages.value.push(newMessageData);
+    // Добавляем сообщение в индекс channel id
+    if (!messages.value[channel.id]) {
+      messages.value[channel.id] = [];
+    }
+    messages.value[channel.id].push(newMessageData);
 
     // Очистка поля ввода
-    newMessage.value = '';
+    channel.inputValue = '';
   } catch (error) {
     console.error('Failed to send message:', error);
   }
@@ -1078,8 +1056,50 @@ const toggleCategory = (worldId, categoryId) => {
     }
   }
 };
+
+const getMessages = async (channel) => {
+  if (!channel || !channel.id) {
+    console.warn('No channel selected');
+    return;
+  }
+
+  try {
+    // Initialize the messages array for the channel
+    messages.value[channel.id] = [];
+    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+
+    // Retrieve messages from the response
+    const messagesData = response.data.messages || [];
+
+    // Format and add messages to the list
+    const formattedMessages = messagesData.map(msg => ({
+      id: msg.id,
+      user: msg.user || 'Вы',
+      content: msg.content,
+      time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
+      online: msg.online || false,
+      channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
+    }));
+
+    // Update the messages list for the channel
+    messages.value[channel.id].push(...formattedMessages);
+
+  } catch (error) {
+    console.error('Failed to fetch messages:', error);
+  }
+}
+
 let draggedChannel = null;
 const startDrag = (event, channel) => {
+
+  getMessages(channel);
+
   draggedChannel = channel;
   isDragging.value = true;
   event.dataTransfer.setData("text/plain", JSON.stringify(channel));
@@ -1114,45 +1134,48 @@ const removeChannel = (index) => {
 };
 
 const openChannel = async (channel) => {
-   if (!channel || !channel.id) {
+  if (!channel || !channel.id) {
     console.warn('No channel selected');
     return;
   }
 
   try {
-    // Делаем запрос на сервер для получения сообщений
-    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=10`, {
+    // Initialize the messages array for the channel
+    messages.value[channel.id] = [];
+    const response = await axios.get(`http://localhost:3000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
         'accept': 'application/json'
       }
     });
 
-    // Получаем данные сообщений из ответа
+    // Retrieve messages from the response
     const messagesData = response.data.messages || [];
 
-    // Форматируем сообщения и добавляем их в список
+    // Format and add messages to the list
     const formattedMessages = messagesData.map(msg => ({
       id: msg.id,
-      user: msg.user || 'Система',
+      user: msg.user || 'Вы',
       content: msg.content,
       time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
       online: msg.online || false,
+      channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
     }));
 
-    // Обновляем список сообщений
-    messages.value = [...formattedMessages];
+    // Update the messages list for the channel
+    messages.value[channel.id].push(...formattedMessages);
 
   } catch (error) {
     console.error('Failed to fetch messages:', error);
   }
+
   if (!isChannelActive(channel.id)) {
     if (!isDragging.value) {
-      // Если это обычный клик, заменяем все активные каналы на новый
+      // Replace all active channels with the new one if not dragging
       activeChannels.value = [channel];
     } else if (activeChannels.value.length < 4) {
-      // Если это перетаскивание и есть свободное место, добавляем канал
+      // Add the channel if dragging and there is space
       activeChannels.value.push(channel);
     }
   }
@@ -1160,11 +1183,6 @@ const openChannel = async (channel) => {
 
 const isChannelActive = (channelId) => {
   return activeChannels.value.some((channel) => channel.id === channelId);
-};
-
-// Функции управления мирами
-const selectWorldTemplate = (template) => {
-  newWorld.value.template = template.id;
 };
 
 const createWorld = async () => {
