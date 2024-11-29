@@ -325,8 +325,18 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">  
-                    <div id="jitsi-container" style="width: 100%; height: 700px;"></div>
+                  <div id='video-container' v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
+                    <div v-if="channel.connected" class="text-center"></div>
+                    <div v-else class="text-gray-400 text-center">
+                      <component :is="channel.type === 'voice' ? Mic : Video" class="w-12 h-12 mx-auto mb-4 text-[#00ff9d]" />
+                      <p>{{ channel.type === 'voice' ? 'Голосовой' : 'Видео' }} канал</p>
+                      <button
+                        @click="connectToChannel(channel)"
+                        class="mt-4 bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 font-medium py-2 px-4 rounded-md transition-colors duration-200"
+                      >
+                        Присоединиться к {{ channel.type === 'voice' ? 'голосовому' : 'видео' }} чату
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -736,48 +746,50 @@ const accessToken = store.getters['auth/getAccessToken'];
 
 // jitsi -----------------------------------
 
-const initJitsi = async () => {
-try {
-  console.log("jitsi init...");
-  const domain = "localhost:7000";
-  const options = {
-      roomName: "362dc905-96eb-43e9-94b9-40d7726d6ff3",
-      width: "100%",
-      height: "100%",
-      parentNode: document.getElementById('jitsi-container'),
-      configOverwrite: {
-          startWithAudioMuted: true,
-          startWithVideoMuted: true,
-      },
-      userInfo: {
-          displayName: "Timothy" // Display name
-      }
-  };
+const connectToJitsi = async (channel, room, password) => {
+  try {
+    console.log("jitsi init...");
+    console.log(room)
+    console.log(password)
+    const domain = "localhost:7000";
+    const options = {
+        roomName: room,
+        width: "100%",
+        height: "100%",
+        parentNode: document.getElementById('video-container'),
+        configOverwrite: {
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+        },
+        userInfo: {
+            displayName: "Timothy" // Display name
+        }
+    };
 
-  // Create a new Jitsi Meet API instance
-  const api = new JitsiMeetExternalAPI(domain, options);
+    // Create a new Jitsi Meet API instance
+    const api = new JitsiMeetExternalAPI(domain, options);
 
-  // Handle events (optional)
-  api.addEventListener('videoConferenceJoined', () => {
-      // prompt('Conference joined successfully!');
-  });
+    // Handle events (optional)
+    api.addEventListener('videoConferenceJoined', () => {
+        // prompt('Conference joined successfully!');
+    });
 
-  api.addEventListener('videoConferenceLeft', () => {
-      // prompt('Conference left!');
-  });
+    api.addEventListener('videoConferenceLeft', () => {
+        disconnectFromChannel(channel);
+    });
 
-  api.addEventListener('participantRoleChanged', function(event) {
-      if (event.role === "moderator") {
-          api.executeCommand('password', "hello");
-      }
-  });
+    api.addEventListener('participantRoleChanged', function(event) {
+        if (event.role === "moderator") {
+            api.executeCommand('password', password);
+        }
+    });
 
-  api.addEventListener('passwordRequired', () => {
-      api.executeCommand('password', "hello")
-  })
-} catch (error) {
-  console.warn(error);
-}
+    api.addEventListener('passwordRequired', () => {
+        api.executeCommand('password', password)
+    })
+  } catch (error) {
+    console.warn(error);
+  }
 };
 
 // -------------------------------------------------------
@@ -1193,10 +1205,6 @@ const openChannel = async (channel) => {
     return;
   }
 
-  if (channel.type == "video" || channel.type == "voice") {
-    initJitsi();
-  }
-
   try {
     // Initialize the messages array for the channel
     messages.value[channel.id] = [];
@@ -1445,18 +1453,39 @@ const showParticipants = () => {
 };
 
 // Функция для подключения ёосовому или видео каналу
-const connectToChannel = (channel) => {
-  if (channel.type == "video") {
-    
-  }
+const connectToChannel = async (channel) => {
+  const roomResponse = await axios.post(
+    `http://localhost:3000/voice/${channel.id}/join`, {}, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+    }
+  });
+
   channel.connected = true;
-  // Здесь вы обычно реализуете фактическую логику подключения
+  connectToJitsi(
+    channel, 
+    roomResponse.data.room_id, 
+    roomResponse.data.password
+  );
 };
 
 // Функция для отключения от голосового или видео канала
-const disconnectFromChannel = (channel) => {
+const disconnectFromChannel = async (channel) => {
+  const elements = document.querySelectorAll('[id^="jitsiConferenceFrame"]');
+  elements.forEach(element => {
+    element.parentNode.removeChild(element);
+  })
+
+  const roomResponse = await axios.post(
+    `http://localhost:3000/voice/${channel.id}/leave`, {}, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+    }
+  });
+
   channel.connected = false;
-  // Здесь вы обычно реализуете фактическую логику отключения
 };
 
 // Анимации
