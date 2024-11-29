@@ -36,23 +36,19 @@ def send_message(
             status_code=403,
             detail="You must be a member of the world to send messages"
         )
-    
+
     # Создаём сообщение
     db_message = Message(
         channel_id=message.channel_id,
         user_id=current_user.id,
-        content=message.content
+        content=message.content,
+        user_name=current_user.username #Добавлено user_name
     )
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
     
-    return {
-        "message_id": db_message.id,
-        "channel_id": db_message.channel_id,
-        "content": db_message.content,
-        "timestamp": db_message.created_at
-    }
+    return db_message
 
 @router.delete("/{message_id}", status_code=204)
 def delete_message(
