@@ -888,6 +888,21 @@ const newChannel = ref({
   type: 'text'
 });
 
+const getUserData = async (user_id) => {
+  try {
+    // Fetch user worlds
+    const userData = await axios.get(`http://localhost:3000/user/${user_id}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+    return userData.data;
+  } catch (error) {
+    console.warn(error);
+  }
+}
+
 const worlds = ref([]);
 
 const fetchAvailableWorlds = async () => {
@@ -994,9 +1009,16 @@ const sendMessage = async (channel, newMessage) => {
 
   try {
     // Отправляем сообщение на сервер
+    const userData = await axios.get('http://localhost:3000/user/me', {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
     const response = await axios.post('http://localhost:3000/messages/send', {
       channel_id: channel.id,
-      content: newMessage
+      content: newMessage,
+      user_id: userData.data.id
     }, {
       headers: {
         'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
@@ -1005,12 +1027,14 @@ const sendMessage = async (channel, newMessage) => {
     });
 
     // Добавляем сообщение в список сообщений
+    
     const newMessageData = {
       id: response.data.id,
-      user: response.data.user || 'Вы',
+      user_id: userData.data.id,
+      user: userData.data.username || 'Вы',
       content: response.data.content,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      avatar: response.data.avatar || "https://i.imgur.com/dlFRtHv.png",
+      avatar: userData.data.profile_pic_url || "https://i.imgur.com/dlFRtHv.png",
       online: true
     };
 
@@ -1103,12 +1127,16 @@ const getMessages = async (channel) => {
     const messagesData = response.data.messages || [];
 
     // Format and add messages to the list
-    const formattedMessages = messagesData.map(msg => ({
+
+    const userPromises = messagesData.map(msg => getUserData(msg.user_id));
+    const userDataArray = await Promise.all(userPromises);
+    
+    const formattedMessages = messagesData.map((msg, index) => ({
       id: msg.id,
-      user: msg.user_id|| 'Вы',
+      user: userDataArray[index].username,
       content: msg.content,
-      time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
+      time: new Date(msg.timestamp).toLocaleString(),
+      avatar: userDataArray[index].profile_pic_url,
       online: msg.online || false,
       channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
     }));
@@ -1182,13 +1210,15 @@ const openChannel = async (channel) => {
     // Retrieve messages from the response
     const messagesData = response.data.messages || [];
 
-    // Format and add messages to the list
-    const formattedMessages = messagesData.map(msg => ({
+    const userPromises = messagesData.map(msg => getUserData(msg.user_id));
+    const userDataArray = await Promise.all(userPromises);
+    
+    const formattedMessages = messagesData.map((msg, index) => ({
       id: msg.id,
-      user: msg.user || 'Вы',
+      user: userDataArray[index].username,
       content: msg.content,
-      time: new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      avatar: msg.avatar || "https://i.imgur.com/dlFRtHv.png",
+      time: new Date(msg.timestamp).toLocaleString(),
+      avatar: userDataArray[index].profile_pic_url,
       online: msg.online || false,
       channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
     }));
