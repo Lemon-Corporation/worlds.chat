@@ -68,6 +68,14 @@
             <label for="bio" class="block text-gray-300 mb-2">О себе</label>
             <textarea v-model="editForm.bio" id="bio" class="w-full bg-gray-700 text-white rounded px-3 py-2" rows="4"></textarea>
           </div>
+          <div class="mb-4">
+            <label for="banner_url" class="block text-gray-300 mb-2">URL баннера</label>
+            <input v-model="editForm.banner_url" id="banner_url" type="text" class="w-full bg-gray-700 text-white rounded px-3 py-2">
+          </div>
+          <div class="mb-4">
+            <label for="profile_pic_url" class="block text-gray-300 mb-2">URL аватарки</label>
+            <input v-model="editForm.profile_pic_url" id="profile_pic_url" type="text" class="w-full bg-gray-700 text-white rounded px-3 py-2">
+          </div>
           <div class="flex justify-end">
             <button type="button" @click="closeEditProfileModal" class="mr-2 px-4 py-2 bg-gray-600 text-white rounded">Отмена</button>
             <button type="submit" class="px-4 py-2 bg-[#00ff9d] text-gray-900 rounded">Сохранить</button>
@@ -79,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import NavBar from '@/components/NavBar.vue';
 import axios from 'axios';
@@ -88,16 +96,34 @@ const store = useStore();
 const error = ref(null);
 
 const user = computed(() => store.getters['auth/getUser']);
+const accessToken = store.getters['auth/getAccessToken'];
 
 const showEditProfileModal = ref(false);
 
 const editForm = ref({
   username: '',
-  bio: ''
+  bio: '',
+  profile_pic_url: '',
 });
+
+const getProfile = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/user/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    store.commit('auth/SET_USER', response.data);
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    error.value = 'Произошла ошибка при получении профиля. Пожалуйста, попробуйте позже.';
+  }
+};
 
 const openEditProfileModal = () => {
   editForm.value.username = user.value.username;
+  editForm.value.profile_pic_url = user.value.profile_pic_url || ''
+  editForm.value.banner_url = user.value.banner_url || ''
   editForm.value.bio = user.value.bio || '';
   showEditProfileModal.value = true;
 };
@@ -108,7 +134,11 @@ const closeEditProfileModal = () => {
 
 const updateProfile = async () => {
   try {
-    const response = await axios.put('/api/me', editForm.value);
+    const response = await axios.patch('http://localhost:8000/user/', editForm.value, {
+      headers: {
+        Authorization: `Bearer ${accessToken.value}`,
+      },
+    });
     store.commit('auth/SET_USER', { ...user.value, ...response.data });
     closeEditProfileModal();
   } catch (err) {
@@ -116,6 +146,10 @@ const updateProfile = async () => {
     error.value = 'Произошла ошибка при обновлении профиля. Пожалуйста, попробуйте позже.';
   }
 };
+
+onMounted(async () => {
+  await getProfile();
+});
 </script>
 
 <style scoped>

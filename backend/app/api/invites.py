@@ -31,6 +31,8 @@ def create_invite(
     world = db.query(World).filter(World.id == invite.world_id).first()
     if not world:
         raise HTTPException(status_code=404, detail="This world does not exist.")
+    if world.parent_world_id:
+        raise HTTPException(status_code=403, detail="Cannot create an invite for a subworld.")
 
     # Generate invite code and expiration date
     invite_code = generate_invite_code()
@@ -119,6 +121,12 @@ def accept_invite(
     # Add the user to the world members table
     world_member = WorldMember(world_id=invite.world_id, user_id=current_user.id)
     db.add(world_member)
+
+    # If there are subworlds, add the user to them as well:
+    for subworld in db.query(World).filter(World.parent_world_id == invite.world_id):
+        membership = WorldMember(world_id=subworld.id, user_id=current_user.id)
+        db.add(membership)
+
     db.commit()
 
     return {"message": "Invitation accepted."}

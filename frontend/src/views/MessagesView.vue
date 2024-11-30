@@ -4,8 +4,14 @@
     <NavBar/>
     <div class="flex flex-grow h-[calc(100vh-4rem)]">
       <!-- Левый бар (сайдбар) -->
-      <div class="w-64 bg-gray-900/80 backdrop-blur-sm border-r border-purple-500/20 overflow-y-auto">
+      <div class="w-64 bg-gray-900/80 backdrop-blur-sm border-r border-purple-500/20 overflow-y-auto flex flex-col">
         <div class="p-4">
+          <input
+            v-model="friendSearch"
+            type="text"
+            placeholder="Поиск друзей..."
+            class="w-full bg-gray-800/60 border border-purple-500/20 rounded-lg px-3 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ff9d] mb-4"
+          />
           <button
             @click="showNewMessageModal = true"
             class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-[#00ff9d] hover:text-[#00ff9d] py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200"
@@ -15,8 +21,8 @@
           </button>
         </div>
 
-        <div class="space-y-2 px-4">
-          <div v-for="chat in chats" :key="chat.id" class="space-y-1">
+        <div class="space-y-2 px-4 flex-grow overflow-y-auto">
+          <div v-for="chat in filteredChats" :key="chat.id" class="space-y-1">
             <div
               @click="selectChat(chat)"
               class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-purple-500/20 transition-colors duration-200"
@@ -42,6 +48,17 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Add Friend button -->
+        <div class="p-4 border-t border-purple-500/20">
+          <button
+            @click="showAddFriendModal = true"
+            class="w-full bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200"
+          >
+            <UserPlus class="w-4 h-4" />
+            Добавить друга
+          </button>
         </div>
       </div>
 
@@ -186,17 +203,6 @@
               </div>
             </div>
           </div>
-          <div class="max-h-60 overflow-y-auto">
-            <div
-              v-for="user in searchResults"
-              :key="user.id"
-              @click="selectUser(user)"
-              class="flex items-center p-2 hover:bg-gray-700 cursor-pointer rounded-lg"
-            >
-              <img :src="user.avatar" :alt="user.name" class="w-10 h-10 rounded-full mr-3" />
-              <span class="text-gray-300">{{ user.name }}</span>
-            </div>
-          </div>
           <div class="flex justify-end gap-3 mt-6">
             <button
               type="button"
@@ -215,21 +221,52 @@
         </div>
       </div>
     </div>
+
+    <!-- Add Friend Modal -->
+    <div v-if="showAddFriendModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-gray-900 border border-purple-500/20 rounded-lg w-full max-w-md p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-[#00ff9d] text-xl font-bold">Добавить друга</h2>
+          <button @click="closeAddFriendModal" class="text-gray-400 hover:text-[#00ff9d] transition-colors duration-200 focus:outline-none">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label for="friendUsername" class="block text-gray-300 text-sm font-medium mb-2">Имя пользователя или email</label>
+            <input
+              id="friendUsername"
+              v-model="newFriendUsername"
+              type="text"
+              class="w-full bg-gray-800 border border-purple-500/20 rounded-lg px-3 py-2 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ff9d]"
+              placeholder="Введите имя пользователя или email"
+            />
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              @click="closeAddFriendModal"
+              class="px-4 py-2 text-gray-400 hover:text-gray-300 transition-colors duration-200 focus:outline-none"
+            >
+              Отмена
+            </button>
+            <button
+              @click="addFriend"
+              class="bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none"
+            >
+              Добавить
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { Plus, MoreVertical, Send, MessageSquare, X, Smile, Paperclip } from 'lucide-vue-next';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { Plus, MoreVertical, Send, MessageSquare, X, Smile, Paperclip, UserPlus } from 'lucide-vue-next';
 import NavBar from '@/components/NavBar.vue';
-
-const navigation = [
-  { name: "Обзор", href: "#", current: false },
-  { name: "Популярное", href: "#", current: false },
-  { name: "Категории", href: "#", current: false },
-  { name: "Мои Миры", href: "#", current: false },
-  { name: "Сообщения", href: "#", current: true },
-];
 
 const chats = ref([
   {
@@ -269,7 +306,18 @@ const showChatOptions = ref(false);
 const searchResults = ref([]);
 const selectedUser = ref(null);
 
+const showAddFriendModal = ref(false);
+const newFriendUsername = ref('');
+const friendSearch = ref('');
+
 const emojis = ['😀', '😂', '😍', '🤔', '😎', '👍', '🎉', '🔥', '❤️', '🙌', '🤝', '🌟', '💡', '🎈', '🎁', '🏆'];
+
+const filteredChats = computed(() => {
+  if (!friendSearch.value) return chats.value;
+  return chats.value.filter(chat => 
+    chat.name.toLowerCase().includes(friendSearch.value.toLowerCase())
+  );
+});
 
 const selectChat = (chat) => {
   selectedChat.value = chat;
@@ -358,6 +406,32 @@ const searchUsers = () => {
 const selectUser = (user) => {
   selectedUser.value = user;
   newDialogRecipient.value = user.name;
+};
+
+const closeAddFriendModal = () => {
+  showAddFriendModal.value = false;
+  newFriendUsername.value = '';
+};
+
+const addFriend = () => {
+  if (newFriendUsername.value.trim() === '') return;
+  
+  // Here you would typically make an API call to add the friend
+  console.log(`Adding friend: ${newFriendUsername.value}`);
+  
+  // For demonstration, let's add a new chat
+  const newFriend = {
+    id: Date.now(),
+    name: newFriendUsername.value,
+    avatar: `https://i.pravatar.cc/150?u=${newFriendUsername.value}`,
+    lastMessage: '',
+    lastMessageTime: '',
+    unreadCount: 0,
+    messages: []
+  };
+  
+  chats.value.unshift(newFriend);
+  closeAddFriendModal();
 };
 
 const chatOptionsRef = ref(null);

@@ -292,9 +292,10 @@
 
                 <!-- Сообщения или содержимое канала -->
                 <div class="flex-1 p-4 overflow-y-auto space-y-4">
+
                   <div v-if="channel.type === 'text'">
                     <div
-                      v-for="message in messages"
+                      v-for="message in messages[channel.id]"
                       :key="message.id"
                       class="group flex items-start gap-3 p-2 rounded-lg hover:bg-purple-500/10 transition-colors duration-200"
                     >
@@ -324,21 +325,8 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
-                    <div v-if="channel.connected" class="text-center">
-                      <component :is="channel.type === 'voice' ? Mic : Video" class="w-16 h-16 text-[#00ff9d] mb-4" />
-                      <p class="text-[#00ff9d] text-xl font-bold mb-2">Вы подключены к {{ channel.type === 'voice' ? 'голосовому' : 'видео' }} каналу</p>
-                      <p class="text-gray-400 mb-4">{{ channel.name }}</p>
-                      <div class="flex space-x-4">
-                        <button class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors duration-200">
-                          <MicOff v-if="channel.type === 'voice'" class="w-6 h-6" />
-                          <VideoOff v-else class="w-6 h-6" />
-                        </button>
-                        <button @click="disconnectFromChannel(channel)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200">
-                          <PhoneOff class="w-6 h-6" />
-                        </button>
-                      </div>
-                    </div>
+                  <div id='video-container' v-else-if="channel.type === 'voice' || channel.type === 'video'" class="flex flex-col items-center justify-center h-full">
+                    <div v-if="channel.connected" class="text-center"></div>
                     <div v-else class="text-gray-400 text-center">
                       <component :is="channel.type === 'voice' ? Mic : Video" class="w-12 h-12 mx-auto mb-4 text-[#00ff9d]" />
                       <p>{{ channel.type === 'voice' ? 'Голосовой' : 'Видео' }} канал</p>
@@ -366,6 +354,7 @@
                       <Plus class="w-5 h-5" />
                     </button>
                     <input
+                      v-model="channel.inputValue"
                       type="text"
                       placeholder="Напишите сообщение..."
                       class="flex-1 bg-transparent border-none text-gray-300 placeholder-gray-500 focus:ring-0 focus:outline-none"
@@ -380,7 +369,7 @@
                     >
                       <Paperclip class="w-5 h-5" />
                     </button>
-                    <button
+                    <button  @click="sendMessage(channel, channel.inputValue)"
                       class="bg-[#00ff9d] hover:bg-[#00cc7d] text-gray-900 p-2 rounded transition-colors duration-200"
                     >
                       <Send class="w-4 h-4" />
@@ -726,6 +715,8 @@
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
+import { useStore } from 'vuex';
+import axios from "axios";
 import {
   Hash,
   Mic,
@@ -749,6 +740,56 @@ import {
   PhoneOff,
 } from "lucide-vue-next";
 import NavBar from "@/components/NavBar.vue";
+
+const store = useStore();
+const accessToken = store.getters['auth/getAccessToken'];
+
+// jitsi -----------------------------------
+
+const connectToJitsi = async (channel, username, room, password) => {
+  try {
+    const domain = "localhost:7000";
+    const options = {
+        roomName: room,
+        width: "100%",
+        height: "100%",
+        parentNode: document.getElementById('video-container'),
+        configOverwrite: {
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+        },
+        userInfo: {
+            displayName: username
+        }
+    };
+
+    // Create a new Jitsi Meet API instance
+    const api = new JitsiMeetExternalAPI(domain, options);
+
+    // Handle events (optional)
+    api.addEventListener('videoConferenceJoined', () => {
+        // prompt('Conference joined successfully!');
+    });
+
+    api.addEventListener('videoConferenceLeft', () => {
+        disconnectFromChannel(channel);
+    });
+
+    api.addEventListener('participantRoleChanged', function(event) {
+        if (event.role === "moderator") {
+            api.executeCommand('password', password);
+        }
+    });
+
+    api.addEventListener('passwordRequired', () => {
+        api.executeCommand('password', password)
+    })
+  } catch (error) {
+    console.warn(error);
+  }
+};
+
+// -------------------------------------------------------
 
 // Иконки миров
 const worldIcons = [
@@ -856,55 +897,167 @@ const newChannel = ref({
   type: 'text'
 });
 
-const worlds = ref([
-  {
-    id: 1,
-    name: "Тестовый мир",
-    icon: worldIcons[0],
-    expanded: true,
-    notifications: false,
-    categories: [
-      {
-        id: 1,
-        name: "Общее",
-        expanded: true,
-        channels: [
-          { id: "1", name: "общий чат", type: "text", unread: false },
-          { id: "2", name: "объявления", type: "text", unread: false },
-        ],
-      },
-      {
-        id: 2,
-        name: "Социальное",
-        expanded: false,
-        channels: [
-          { id: "3", name: "общий-чат", type: "text", unread: false },
-          { id: "4", name: "голосовая-комната", type: "voice", unread: false },
-          { id: "5", name: "видео-встреча", type: "video", unread: false },
-        ],
-      },
-    ],
-  },
-]);
+const getUserData = async (user_id) => {
+  try {
+    // Fetch user worlds
+    const userData = await axios.get(`http://localhost:8000/user/${user_id}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+    return userData.data;
+  } catch (error) {
+    console.warn(error);
+  }
+}
 
-const messages = ref([
-  {
-    id: "1",
-    user: "Система",
-    content: "Добро пожаловать в мир! Напишите первое сообщение!",
-    time: "12:30",
-    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
-    online: true,
-  },
-  {
-    id: "2",
-    user: "Система",
-    content: "Попробуйте зажать и перенести в правую часть канал для разделения экрана!",
-    time: "12:32",
-    avatar: "https://i.pinimg.com/736x/04/0c/2e/040c2e1694148009d0e0c568b6bfc18b.jpg",
-    online: true,
-  },
-]);
+const worlds = ref([]);
+
+const fetchAvailableWorlds = async () => {
+  const accessToken = store.getters['auth/getAccessToken'];
+
+  try {
+    // Fetch user worlds
+    const worldsResponse = await axios.get('http://localhost:8000/user/worlds', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+
+    const allWorlds = worldsResponse.data.worlds;
+   
+
+    // Ensure unique IDs and correct categorization
+    const mainWorlds = allWorlds.filter(world => world.parent_world_id === null);
+    const categoryWorlds = allWorlds.filter(world => world.parent_world_id !== null);
+
+    // Fetch all channels
+    const channelsResponse = await axios.get('http://localhost:8000/channels/all?page=1&per_page=40', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'accept': 'application/json'
+      }
+    });
+
+    const allChannels = channelsResponse.data.channels;
+
+    // Create a map to easily find parent worlds by id
+    const worldMap = new Map();
+    mainWorlds.forEach(world => {
+      worldMap.set(world.id, {
+        id: world.id,
+        name: world.name,
+        icon: world.icon_url,
+        expanded: false,
+        notifications: false,
+        categories: [],
+        channels: [], // Initialize channels array
+      });
+    });
+
+    // Assign category worlds to their parent worlds
+    categoryWorlds.forEach(category => {
+      const parentWorld = worldMap.get(category.parent_world_id);
+      if (parentWorld) {
+        parentWorld.categories.push({
+          id: category.id,
+          name: category.name,
+          expanded: false,
+          channels: [], // Initialize channels array
+        });
+      }
+    });
+
+    // Assign channels to their respective worlds and categories
+    allChannels.forEach(channel => {
+  // Найти мир, к которому принадлежит категория
+  let categoryFound = false;
+
+  worldMap.forEach(world => {
+    const category = world.categories.find(cat => cat.id === channel.world_id);
+    if (category) {
+      // Добавить канал в категорию
+      category.channels.push({
+        id: channel.id,
+        name: channel.name,
+        type: channel.type,
+        unread: false
+      });
+      categoryFound = true;
+    }
+  });
+
+  if (!categoryFound) {
+    // console.warn(`Category not found for channel ID ${channel.id}, world_id ${channel.world_id}`);
+  }
+});
+
+    // Convert map back to an array for worlds ref
+    worlds.value = Array.from(worldMap.values());
+  } catch (error) {
+    console.error('Failed to fetch available worlds and channels:', error);
+  }
+};
+
+
+fetchAvailableWorlds();
+
+const messages = ref([]);
+
+const sendMessage = async (channel, newMessage) => {
+  // Проверяем, что сообщение не пустое и есть активный канал
+  if (!newMessage) {
+    console.warn('Message content is empty');
+
+    return;
+  }
+
+  try {
+    // Отправляем сообщение на сервер
+    const userData = await axios.get('http://localhost:8000/user/me', {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+    const response = await axios.post('http://localhost:8000/messages/send', {
+      channel_id: channel.id,
+      content: newMessage,
+      user_id: userData.data.id
+    }, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+
+    // Добавляем сообщение в список сообщений
+    
+    const newMessageData = {
+      id: response.data.id,
+      user_id: userData.data.id,
+      user: userData.data.username || 'Вы',
+      content: response.data.content,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      avatar: userData.data.profile_pic_url || "https://i.imgur.com/dlFRtHv.png",
+      online: true
+    };
+
+    // Добавляем сообщение в индекс channel id
+    if (!messages.value[channel.id]) {
+      messages.value[channel.id] = [];
+    }
+    messages.value[channel.id].push(newMessageData);
+
+    // Очистка поля ввода
+    channel.inputValue = '';
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
+
 
 const activeChannels = ref([]);
 const isDragging = ref(false);
@@ -960,17 +1113,61 @@ const toggleCategory = (worldId, categoryId) => {
     }
   }
 };
-const draggedChannel = ref(null); 
+
+const getMessages = async (channel) => {
+  if (!channel || !channel.id) {
+    console.warn('No channel selected');
+    return;
+  }
+
+  try {
+    // Initialize the messages array for the channel
+    messages.value[channel.id] = [];
+    const response = await axios.get(`http://localhost:8000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+
+    // Retrieve messages from the response
+    const messagesData = response.data.messages || [];
+
+    // Format and add messages to the list
+
+    const userPromises = messagesData.map(msg => getUserData(msg.user_id));
+    const userDataArray = await Promise.all(userPromises);
+    
+    const formattedMessages = messagesData.map((msg, index) => ({
+      id: msg.id,
+      user: userDataArray[index].username,
+      content: msg.content,
+      time: new Date(msg.timestamp).toLocaleString(),
+      avatar: userDataArray[index].profile_pic_url,
+      online: msg.online || false,
+      channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
+    }));
+
+    // Update the messages list for the channel
+    messages.value[channel.id].push(...formattedMessages);
+
+  } catch (error) {
+    console.error('Failed to fetch messages:', error);
+  }
+}
+
+let draggedChannel = null;
 const startDrag = (event, channel) => {
+
+  getMessages(channel);
+
   draggedChannel = channel;
   isDragging.value = true;
   event.dataTransfer.setData("text/plain", JSON.stringify(channel));
 };
-
 const endDrag = () => {
   isDragging.value = false;
 };
-
 const onDrop = (event) => {
   isDragging.value = false;
   const channelData = JSON.parse(event.dataTransfer.getData("text/plain"));
@@ -978,7 +1175,6 @@ const onDrop = (event) => {
     activeChannels.value.push(channelData);
   }
 };
-
 const onDropOverlay = (event, index) => {
   isDragging.value = false;
   const channelData = JSON.parse(event.dataTransfer.getData("text/plain"));
@@ -998,13 +1194,51 @@ const removeChannel = (index) => {
   activeChannels.value.splice(index, 1);
 };
 
-const openChannel = (channel) => {
+const openChannel = async (channel) => {
+  if (!channel || !channel.id) {
+    console.warn('No channel selected');
+    return;
+  }
+
+  try {
+    // Initialize the messages array for the channel
+    messages.value[channel.id] = [];
+    const response = await axios.get(`http://localhost:8000/channels/${channel.id}/get_messages?page=1&per_page=100`, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+      }
+    });
+
+    // Retrieve messages from the response
+    const messagesData = response.data.messages || [];
+
+    const userPromises = messagesData.map(msg => getUserData(msg.user_id));
+    const userDataArray = await Promise.all(userPromises);
+    
+    const formattedMessages = messagesData.map((msg, index) => ({
+      id: msg.id,
+      user: userDataArray[index].username,
+      content: msg.content,
+      time: new Date(msg.timestamp).toLocaleString(),
+      avatar: userDataArray[index].profile_pic_url,
+      online: msg.online || false,
+      channelId: `[${Number(channel.id)}]`  // Store channel ID as a number in square brackets
+    }));
+
+    // Update the messages list for the channel
+    messages.value[channel.id].push(...formattedMessages);
+
+  } catch (error) {
+    console.error('Failed to fetch messages:', error);
+  }
+
   if (!isChannelActive(channel.id)) {
     if (!isDragging.value) {
-      // Если это обычный клик, заменяем все активные каналы на новый
+      // Replace all active channels with the new one if not dragging
       activeChannels.value = [channel];
     } else if (activeChannels.value.length < 4) {
-      // Если это перетаскивание и есть свободное место, добавляем канал
+      // Add the channel if dragging and there is space
       activeChannels.value.push(channel);
     }
   }
@@ -1014,12 +1248,7 @@ const isChannelActive = (channelId) => {
   return activeChannels.value.some((channel) => channel.id === channelId);
 };
 
-// Функции управления мирами
-const selectWorldTemplate = (template) => {
-  newWorld.value.template = template.id;
-};
-
-const createWorld = () => {
+const createWorld = async () => {
   const newId = Math.max(...worlds.value.map(w => w.id)) + 1;
   const selectedTemplate = worldTemplates.find(t => t.id === newWorld.value.template);
 
@@ -1042,9 +1271,26 @@ const createWorld = () => {
     }))
   };
 
-  worlds.value.push(newWorldObj);
+  try {
+    const response = await axios.post('/worlds/', {
+      name: newWorld.value.name,
+      description: `World created with template ${newWorld.value.template}`,
+      icon_url: newWorld.value.icon,
+      is_personal_chat: false,
+      partner_id: null,
+    });
 
-  // Сброс формы и закрытие модального окна
+    if (response.data.id) {
+      worlds.value.push(newWorldObj);
+    } else {
+      alert('Failed to create world on backend');
+    }
+  } catch (error) {
+    console.error('Error creating world:', error);
+    alert('Failed to create world on backend');
+  }
+
+  // Reset form and close modal
   newWorld.value = { name: '', icon: worldIcons[0], template: 'community' };
   showCreateWorldModal.value = false;
 };
@@ -1066,10 +1312,20 @@ const saveWorldSettings = () => {
   showWorldSettings.value = false;
 };
 
-const deleteWorld = () => {
+const deleteWorld = async () => {
   if (confirm('Вы уверены, что хотите удалить этот мир? Это действие нельзя отменить.')) {
-    worlds.value = worlds.value.filter(w => w.id !== selectedWorld.value.id);
-    showWorldSettings.value = false;
+    try {
+      await axios.delete(`http://localhost:8000/worlds/${selectedWorld.value.id}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'accept': 'application/json'
+        }
+      });
+      worlds.value = worlds.value.filter(w => w.id !== selectedWorld.value.id);
+      showWorldSettings.value = false;
+    } catch (error) {
+      console.error('Failed to delete world:', error);
+    }
   }
 };
 
@@ -1078,17 +1334,43 @@ const openCreateCategoryModal = (worldId) => {
   showCreateCategoryModal.value = true;
 };
 
-const createCategory = () => {
+const createCategory = async () => {
   const world = worlds.value.find(w => w.id === selectedWorldId.value);
-  if (world) {
-    const newId = Math.max(...world.categories.map(c => c.id)) + 1;
-    world.categories.push({
-      id: newId,
-      name: newCategory.value.name,
-      expanded: false,
-      channels: []
-    });
+
+  if (!world) {
+    alert('World not found');
+    return;
   }
+
+  const newId = Math.max(...world.categories.map(c => c.id), 0) + 1;
+
+  try {
+    // Отправляем запрос на создание категории
+    const response = await axios.post('/worlds/', {
+      name: newCategory.value.name,
+      description: '', // Оставляем пустым
+      icon_url: '', // Оставляем пустым
+      is_personal_chat: false,
+      parent_world_id: selectedWorldId.value, // ID родительского мира
+    });
+
+    if (response.data.id) {
+      // Если успешно создано на сервере, добавляем локально
+      world.categories.push({
+        id: newId,
+        name: newCategory.value.name,
+        expanded: false,
+        channels: [],
+      });
+    } else {
+      alert('Failed to create category on backend');
+    }
+  } catch (error) {
+    console.error('Error creating category:', error);
+    alert('Failed to create category on backend');
+  }
+
+  // Сброс формы и закрытие модального окна
   newCategory.value = { name: '' };
   showCreateCategoryModal.value = false;
 };
@@ -1099,18 +1381,38 @@ const openCreateChannelModal = (worldId, categoryId) => {
   showCreateChannelModal.value = true;
 };
 
-const createChannel = () => {
+const createChannel = async () => {
   const world = worlds.value.find(w => w.id === selectedWorldId.value);
   if (world) {
     const category = world.categories.find(c => c.id === selectedCategoryId.value);
     if (category) {
-      const newId = `${world.id}-${category.id}-${category.channels.length + 1}`;
-      category.channels.push({
-        id: newId,
-        name: newChannel.value.name,
-        type: newChannel.value.type,
-        unread: false
-      });
+      console.log("create channel info:", 
+          newChannel.value.name,
+          newChannel.value.type,
+          selectedCategoryId.value,
+      )
+      try {
+        const accessToken = store.getters['auth/getAccessToken'];
+        const response = await axios.post('http://localhost:8000/channels/create', {
+          name: newChannel.value.name,
+          type: newChannel.value.type,
+          world_id: selectedCategoryId.value
+        }, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json'
+          }
+        });
+        const newId = `${world.id}-${category.id}-${category.channels.length + 1}`;
+        category.channels.push({
+          id: newId,
+          name: response.data.name,
+          type: response.data.type,
+          unread: false
+        });
+      } catch (error) {
+        console.error('Failed to create channel:', error);
+      }
     }
   }
   newChannel.value = { name: '', type: 'text' };
@@ -1145,16 +1447,53 @@ const showParticipants = () => {
   showParticipantsModal.value = true;
 };
 
-// Функция для подключения к голосовому или видео каналу
-const connectToChannel = (channel) => {
+const getRoomConnection = async (channel_id) => {
+  try {
+    const roomResponse = await axios.post(`http://localhost:8000/voice/${channel_id}/join`,
+      {}, 
+      {
+        headers: {
+          'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+          'accept': 'application/json'
+        }
+      }
+    );
+    return roomResponse.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// Функция для подключения ёосовому или видео каналу
+const connectToChannel = async (channel) => {
+  const roomData = await getRoomConnection(channel.id)
+  const userData = await getUserData()
+
   channel.connected = true;
-  // Здесь вы обычно реализуете фактическую логику подключения
+  connectToJitsi(
+    channel,
+    userData.username,
+    roomData.room_id, 
+    roomData.password
+  );
 };
 
 // Функция для отключения от голосового или видео канала
-const disconnectFromChannel = (channel) => {
+const disconnectFromChannel = async (channel) => {
+  const elements = document.querySelectorAll('[id^="jitsiConferenceFrame"]');
+  elements.forEach(element => {
+    element.parentNode.removeChild(element);
+  })
+
+  const roomResponse = await axios.post(
+    `http://localhost:8000/voice/${channel.id}/leave`, {}, {
+      headers: {
+        'Authorization': `Bearer ${store.getters['auth/getAccessToken']}`,
+        'accept': 'application/json'
+    }
+  });
+
   channel.connected = false;
-  // Здесь вы обычно реализуете фактическую логику отключения
 };
 
 // Анимации

@@ -19,4 +19,16 @@ axios.interceptors.request.use(
   }
 );
 
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      router.push('/auth/sign-in');
+    }
+    return Promise.reject(error);
+  }
+);
+
 createApp(App).use(store).use(router).mount("#app");

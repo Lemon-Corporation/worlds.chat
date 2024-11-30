@@ -56,6 +56,8 @@ def get_participating_worlds(
             owner_id=world.owner_id,
             icon_url=world.icon_url,
             is_personal_chat=world.is_personal_chat,
+            partner_id=world.partner_id,
+            parent_world_id=world.parent_world_id,
         ) for world, _ in worlds
     ]
 
@@ -65,15 +67,15 @@ def get_participating_worlds(
     return {"worlds": world_responses}
 
 
-@router.get("/{username}", response_model=UserPublicInfoResponse)
-def get_user_info_by_username(
-    username: str,
+@router.get("/{user_id}", response_model=UserPublicInfoResponse)
+def get_user_info_by_user_id(
+    user_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     user: User = db \
         .query(User) \
-        .filter(User.username == username) \
+        .filter(User.id == current_user.id) \
         .first()
     
     if not user:

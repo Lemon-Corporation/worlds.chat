@@ -1,0 +1,25 @@
+include:
+  - voicerooms/docker-compose.yml
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "9000:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

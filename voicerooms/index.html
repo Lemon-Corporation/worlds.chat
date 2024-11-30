@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jitsi Meet Integration</title>
+</head>
+<body>
+    <div id="jitsi-container" style="width: 100%; height: 700px;"></div>
+
+    <script src="https://localhost:7000/external_api.js"></script>
+    <script>
+        const domain = "localhost:7000";
+        const options = {
+            roomName: "362dc905-96eb-43e9-94b9-40d7726d6ff3",
+            width: "100%",
+            height: "100%",
+            parentNode: document.getElementById('jitsi-container'),
+            configOverwrite: {
+                startWithAudioMuted: true,
+                startWithVideoMuted: true,
+            },
+            userInfo: {
+                displayName: "Timothy" // Display name
+            }
+        };
+
+        // Create a new Jitsi Meet API instance
+        const api = new JitsiMeetExternalAPI(domain, options);
+
+        // Handle events (optional)
+        api.addEventListener('videoConferenceJoined', () => {
+            // prompt('Conference joined successfully!');
+        });
+
+        api.addEventListener('videoConferenceLeft', () => {
+            // prompt('Conference left!');
+        });
+
+        api.addEventListener('participantRoleChanged', function(event) {
+            if (event.role === "moderator") {
+                api.executeCommand('password', "hello");
+            }
+        });
+
+        api.addEventListener('passwordRequired', () => {
+            api.executeCommand('password', "hello")
+        })
+
+        // Optional: Use the API object to interact with the conference
+        // api.executeCommand('muteEveryone');
+    </script>
+</body>
+</html>

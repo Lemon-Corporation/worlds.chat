@@ -51,6 +51,7 @@ def send_message(
         "message_id": db_message.id,
         "channel_id": db_message.channel_id,
         "content": db_message.content,
+        "user_id": db_message.user_id,
         "timestamp": db_message.created_at
     }
 
